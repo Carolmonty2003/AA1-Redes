@@ -4,7 +4,7 @@
 #include "mysql_connection.h"
 #include <cppconn/driver.h>
 #include <cppconn/exception.h>
-#include <cppconn/prepared_statment.h>
+#include <cppconn/prepared_statement.h>
 #include <cppconn/resultset.h>
 
 #define SERVER "127.0.0.1:3306"
@@ -12,7 +12,7 @@
 #define PASSWORD "enti"
 #define DATABASE "videogame"
 
-void ConnectDatabase(sql::Diriver*& driver, sql::Connection*& con) 
+void ConnectDatabase(sql::Driver*& driver, sql::Connection*& con) 
 {
     try
     {
@@ -50,24 +50,22 @@ void GetAllUsers(sql::Connection* con)
 
         while (res->next())
         {
-        std::cout << res->getSring("users") << std::endl;
+        std::cout << res->getString("users") << std::endl;
         }
+        delete res;
+        delete stmt;
     }
     catch (sql::SQLException& e) {
         std::cout << "Error while fetching users: " << e.what() << std::endl;
     }
-
-    delete res;
-    delete stmt;
 }
 
 void main()
 {
     sql::Driver* driver;
     sql::Connection* con;
-    con->setSchema(DATABASE);
-
     ConnectDatabase(driver, con);
+    con->setSchema(DATABASE);
     GetAllUsers(con);
     DisconnectDatabase(con);
 
