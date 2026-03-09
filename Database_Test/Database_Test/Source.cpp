@@ -40,6 +40,40 @@ void DisconnectDatabase(sql::Connection* con)
     }
 }
 
+void UpdatePassword(sql::Connection* con, std::string user, std::string newPassword)
+{
+    try {
+        //sql::Statement* stmt = con->createStatement();
+        sql::string query = "UPDATE users SET password = ? WHERE user = ?";
+        sql::PreparedStatement* stmt = con->preparedStatement();
+        stmt->setString(1, newPassword);
+        stmt->setString(2, user);
+        std::cout << "La query ejecutada es: " << query << std::endl;
+        int affected_rows = stmt->executedUpdate(query);
+        std::cout << "Number of rows affected: " << affected_rows << std::endl;
+        delete stmt;
+    }
+    catch (sql::SQLException e) {
+        std::cout << "Error while updating password " << < e.what() << std::endl;
+    }
+}
+
+void DeleteByUser(sql::Connection* con, std::string user)
+{
+    try {
+        sql::Statement* stmt = con->createStatement();
+        sql::string query = "DELETE FROM users WHERE users = '" + user + "'";
+        
+        
+        std::cout << "Number of users deleted : " << affected_rows << std::endl;
+
+
+    }
+    catch (sql::SQLException e) {
+        std::cout << "Error while updating password " << < e.what() << std::endl;
+    }
+}
+
 void GetAllUsers(sql::Connection* con) 
 {
     try {
@@ -61,15 +95,44 @@ void GetAllUsers(sql::Connection* con)
     delete stmt;
 }
 
+void CreateUsers(sql::Connection* con, std::string user, std::string password)
+{
+    try {
+        sql::Statement* stmt = con->createStatement();
+        sql::string query = "INSERT INTO users (users,password) VALUES ('" + user + "', '" + password + "' )";
+
+        int affected_rows = stmt->executeUpdate(query);
+
+        if (affected_rows > 0)
+        {
+            std::cout << "User created succesfully" << std::endl;
+        }
+
+        delete stmt;
+
+      
+    }
+    catch (sql::SQLException& e) {
+        std::cout << "Error while fetching users: " << e.what() << std::endl;
+    }
+
+    delete res;
+    delete stmt;
+}
+
 void main()
 {
     sql::Driver* driver;
     sql::Connection* con;
-    con->setSchema(DATABASE);
 
     ConnectDatabase(driver, con);
-    GetAllUsers(con);
+    con->setSchema(DATABASE);
+    //GetAllUsers(con);
+    //UpdatePassword(con,"Radev","suspenderAlumnos");
+    //DeleteByUser();
+    CreateUsers(con,"Radev", "suspenderAlumnos");
     DisconnectDatabase(con);
-
+   
     system("pause");
+
 }
