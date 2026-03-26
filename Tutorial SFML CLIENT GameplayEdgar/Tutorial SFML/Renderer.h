@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <SFML/Graphics.hpp>
 class Renderer : public sf::Drawable, public sf::Transformable
 {
@@ -17,6 +18,8 @@ public:
 
 	void SetTexture(const std::string& path)
 	{
+		if (!texture.loadFromFile(path)) // <-- FALTABA cargar el archivo
+			std::cerr << "Error cargando textura: " << path << std::endl;
 		sprite.setTexture(texture);
 	}
 
