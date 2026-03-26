@@ -9,6 +9,6 @@ public:
 private:
 	std::string uid = "NoName";
 	std::string nickName = "NoName";
-	SceneManager::GameScenes currentScene;
+	std::string password = "NoPass";
 };
 
