@@ -1,29 +1,22 @@
 #pragma once
-#include <iostream>
-#include <SFML/Graphics.hpp>
-class Renderer : public sf::Drawable, public sf::Transformable
+#include <SFML/Graphics/RenderWindow.hpp>
+#include "Transform.h"
+
+// Capa 5 - Componentes (Renderer Base)
+class Renderer
 {
-private:
-	sf::Sprite sprite;
-	sf::Texture texture;
+protected:
+	Transform* transform; // Puntero al Transform de la Entidad que lo posee
 
 public:
-	void draw(sf::RenderTarget& target, sf::RenderStates states) const override
-	{
-		states.transform *= getTransform();
-		target.draw(sprite, states);
-	}
+	Renderer(Transform* t) : transform(t) {}
+	virtual ~Renderer() = default;
 
-	virtual void Update(float dt) = 0;
-
-	void SetTexture(const std::string& path)
-	{
-		if (!texture.loadFromFile(path)) // <-- FALTABA cargar el archivo
-			std::cerr << "Error cargando textura: " << path << std::endl;
-		sprite.setTexture(texture);
-	}
-
-
-
+	// Método puramente virtual: Obliga a las clases hijas a definir cómo dibujarse
+	virtual void render(sf::RenderWindow& window) = 0;
+	
+	// Mantenemos Update por si tienes lógica de animación
+	virtual void Update(float dt) = 0; 
+	
+	inline Transform* GetTransform() const { return transform; }
 };
-

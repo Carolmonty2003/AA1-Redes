@@ -1,17 +1,22 @@
 #pragma once
 #include <vector>
+#include <SFML/Window/Event.hpp>
+#include "Entity.h"
 class Scene
 {
 protected:
-	//std::vector<Object*> ui;
-	//std::vector<Object*> objects;
+	std::vector<Entity*> ui;
+	std::vector<Entity*> entities;
+
 public:
 	Scene() = default;
-	virtual void OnEnter() =0;
-	virtual void Update()  =0;
+	virtual ~Scene() = default;
+	
+	virtual void OnEnter() = 0;
+	
+	virtual void HandleEvent(const sf::Event& event) {}
+	
+	virtual void Update(float dt) = 0;
 	virtual void Render() = 0;
 	virtual void OnExit() = 0;
-
-
 };
-
