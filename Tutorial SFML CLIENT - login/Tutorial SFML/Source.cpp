@@ -1,12 +1,12 @@
 #include <SFML/Network.hpp>
+#include <SFML/Window.hpp>
 #include <iostream>
 #include <string>
+#include "Button.h"
+#include "InputField.h"
 
 #define SERVER_PORT 55000
-//IMPORTANTE CERRAR LA CONEXION DEL CLIENTE
 const sf::IpAddress SERVER_IP = sf::IpAddress(127, 0, 0, 1);
-
-//ESTO EN EL NETWORKMANAGER
 enum tipoPaquete { HANDSHAKE, LOGIN, SIGNUP, MOVIMINETO };
 
 sf::Packet& operator >>(sf::Packet& packet, tipoPaquete& tipo)
@@ -34,9 +34,32 @@ void Login(sf::Packet data)
 	std::cout << "Mensaje enviado del servidor int " << receivedMessage << receivedGreeting << std::endl;
 }
 
-void main()
+int main()
 {
-	sf::TcpSocket socket;
+	sf::RenderWindow window(sf::VideoMode({ 800, 600 }), "My window");
+	Button button(100,100,100,100);
+	button.onClick = [&window]() {
+		window.close();
+	};
+	sf::Font font;
+	font.openFromFile("C:/Windows/Fonts/arial.ttf");
+	InputField inputfield(200, 200, 200, 200,font);
+	while (window.isOpen())
+	{
+		while (const std::optional event = window.pollEvent()) https://www.sfml-dev.org/tutorials/3.0/window/events/#sfwindowbasehandleevents
+		{
+			button.handleEvent(*event, window);
+			inputfield.handleEvent(*event, window);
+			if (event->is<sf::Event::Closed>())
+				window.close();
+		}
+
+		window.clear();
+		button.Draw(window);
+		inputfield.Draw(window);
+		window.display();
+	}
+	/*sf::TcpSocket socket;
 	if (socket.connect(SERVER_IP, SERVER_PORT) != sf::Socket::Status::Done)
 	{
 		std::cerr << "Error al conectar co el servidor" << std::endl;
@@ -88,5 +111,5 @@ void main()
 			}
 		}
 		
-	}
+	}*/
 }
