@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <SFML/Window/Event.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
 #include "Entity.h"
 class Scene
 {
@@ -17,6 +18,6 @@ public:
 	virtual void HandleEvent(const sf::Event& event) {}
 	
 	virtual void Update(float dt) = 0;
-	virtual void Render() = 0;
+	virtual void Render(sf::RenderWindow& window) = 0;
 	virtual void OnExit() = 0;
 };

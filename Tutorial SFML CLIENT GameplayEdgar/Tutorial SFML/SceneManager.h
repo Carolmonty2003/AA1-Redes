@@ -55,14 +55,14 @@ public:
 		return true;
 	}
 
-	inline void UpdateCurrentScene() {
+	inline void UpdateCurrentScene(float dt) {
 		if (nextScene != "") {
 			currentScene->OnExit();
 			currentScene = scenes[nextScene];
 			currentScene->OnEnter();
 			nextScene = "";
 		}
-		currentScene->Update();
+		currentScene->Update(dt);
 	}
 
 

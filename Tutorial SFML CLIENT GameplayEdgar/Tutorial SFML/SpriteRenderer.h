@@ -22,7 +22,7 @@ public:
 		sprite.setTexture(texture);
 	}
 
-	virtual void Render(sf::RenderWindow& window) override
+	virtual void render(sf::RenderWindow& window) override
 	{
 		if (transform != nullptr) {
 			sprite.setPosition(transform->position);

@@ -11,7 +11,7 @@ class GameManager
 {
 
 private:
-    const short cellSize = 10;
+    const short cellSize = 90; // Aumento de tamaño que queda pequeña
 
 public:
 
@@ -42,12 +42,17 @@ public:
 
     void DrawGrid(sf::RenderWindow& window)
     {
+        //Centrar la cuadricula
+        float offsetX = (800.f - (GRIDCOLUMN * cellSize)) / 2.f;
+        float offsetY = (600.f - (GRIDROW * cellSize)) / 2.f;
+
         for (int x = 0; x < GRIDCOLUMN; x++)
         {
             for (int y = 0; y < GRIDROW; y++)
             {
-                sf::RectangleShape cell(sf::Vector2f(cellSize - 2, cellSize - 2));
-                cell.setPosition(sf::Vector2f( x * cellSize, y * cellSize));
+                
+                sf::RectangleShape cell({ (float)cellSize - 2.f, (float)cellSize - 2.f });
+                cell.setPosition({ offsetX + (x * cellSize), offsetY + (y * cellSize) });
 
                 cell.setFillColor(grid[x][y] != 0 ? sf::Color::Cyan : sf::Color(50, 50, 50));
                 window.draw(cell);

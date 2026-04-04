@@ -1,9 +1,13 @@
 #pragma once
 #include "Scene.h"
+#include "GameManager.h"
 #include <iostream>
 
 class GameScene : public Scene
 {
+private:
+	GameManager gameManager;
+
 public:
 	GameScene() = default;
 	
@@ -20,8 +24,9 @@ public:
 	{
 	}
 
-	void Render() override
+	void Render(sf::RenderWindow& window) override
 	{
+		gameManager.DrawGrid(window);
 	}
 
 	void OnExit() override 
