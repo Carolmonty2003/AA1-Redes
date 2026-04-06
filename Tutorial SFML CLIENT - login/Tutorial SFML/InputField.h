@@ -1,16 +1,18 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <string>
-class InputField
+#include "UIElement.h"
+class InputField: public UIElement
 {
 public:
     InputField(float x, float y, float w, float h, sf::Font& font);
-    void handleEvent(const sf::Event& event, const sf::RenderWindow& window);
-    void Draw(sf::RenderWindow& window);
+    void handleEvent(const sf::Event& event, const sf::RenderWindow& window) override;
+    void Draw(sf::RenderWindow& window) override;
     std::string getText() const;
 private:
     sf::RectangleShape rect;
     sf::Text text;
     std::string input;
+    bool selected;
 };
 

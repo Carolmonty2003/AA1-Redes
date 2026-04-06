@@ -10,13 +10,22 @@ InputField::InputField(float x, float y, float w, float h, sf::Font& font) : tex
 
 void InputField::handleEvent(const sf::Event& event, const sf::RenderWindow& window)
 {
+    if (const auto* mouseEvent = event.getIf<sf::Event::MouseButtonPressed>()) {
+        if (rect.getGlobalBounds().contains(sf::Vector2f(static_cast<float>(mouseEvent->position.x), static_cast<float>(mouseEvent->position.y))))
+            selected = true;
+        else
+            selected = false;
+    }
+        
     if (const auto* e = event.getIf<sf::Event::TextEntered>())
     {
-        if (e->unicode == '\b' && !input.empty())
-            input.pop_back();
-        else if (e->unicode >= 32 && e->unicode < 128)
-            input += static_cast<char>(e->unicode);
-        text.setString(input);
+        if (selected) {
+            if (e->unicode == '\b' && !input.empty())
+                input.pop_back();
+            else if (e->unicode >= 32 && e->unicode < 128)
+                input += static_cast<char>(e->unicode);
+            text.setString(input);
+        }
     }
 }
 
