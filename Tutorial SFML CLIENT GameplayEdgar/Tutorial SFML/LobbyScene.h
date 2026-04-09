@@ -1,12 +1,15 @@
 #pragma once
 #include "Scene.h"
+#include "NetworkManager.h"
 #include <iostream>
 #include <SFML/Graphics.hpp>
+
 
 class LobbyScene : public Scene
 {
 private:
     sf::Font font;
+   
 
 public:
 	LobbyScene()
@@ -19,6 +22,9 @@ public:
 	void OnEnter() override
 	{
 		std::cout << "Entrando al Lobby (Bootstrap Server)..." << std::endl;
+
+        NM.ConnectToServer();
+
 	}
 
 	void HandleEvent(const sf::Event& event) override
@@ -31,11 +37,22 @@ public:
                 // Go back to the game scene to start another match
                 SM.SetNextScene("GameScene");
             }
+
+            if (kpInfo && kpInfo->code == sf::Keyboard::Key::M)
+            {
+                NM.DisconectFromServer();
+            }
+
+            if (kpInfo && kpInfo->code == sf::Keyboard::Key::N)
+            {
+                NM.ConnectToServer();
+            }
         }
 	}
 
 	void Update(float dt) override
 	{
+      
 	}
 
 	void Render(sf::RenderWindow& window) override
@@ -60,4 +77,11 @@ public:
 	{
 		std::cout << "Saliendo del Lobby..." << std::endl;
 	}
+
+
+    void AskCreateRoom();
+
+    void AskDeleteRoom();
+
+    void GetRanking();
 };

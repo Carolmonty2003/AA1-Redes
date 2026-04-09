@@ -23,16 +23,16 @@ int main()
 
 	SM.AddScene("GameScene", gameScene);
     SM.AddScene("LobbyScene", lobbyScene);
-	SM.InitFirstScene("GameScene");
+	SM.InitFirstScene("LobbyScene");
 
 	sf::Clock dtClock;
 
 	
 	while (window.isOpen())
 	{
-		//delta time
+		
 		float dt = dtClock.restart().asSeconds();
-		// eventos
+		// Eventos
 		while (const std::optional<sf::Event> event = window.pollEvent())
 		{
 			if (event->is<sf::Event::Closed>())

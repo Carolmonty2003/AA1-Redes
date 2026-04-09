@@ -31,17 +31,15 @@ public:
     void InitGame();
     void Update(float dt);
     
-    // Attempt to place piece based on screen coordinates (mouse click)
     void TryPlacePieceScreen(float mouseX, float mouseY);
     
-    // Attempt to place piece on logical grid coordinates
+   
     bool TryPlacePieceGrid(int gx, int gy, int playerIndex);
 
     bool CheckWin(int gx, int gy, int playerID);
     void AdvanceTurn();
     void CheckGameOver();
 
-    // From previous code
     void AddPieceToGrid(const std::vector<std::vector<short>>& piece, int offsetX = 0, int offsetY = 0);
 
     void DrawGrid(sf::RenderWindow& window);
