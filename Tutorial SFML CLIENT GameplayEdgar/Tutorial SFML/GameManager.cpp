@@ -35,11 +35,12 @@ void GameManager::InitGame(const std::vector<Player>& connectedPlayers,
 void GameManager::Update(float dt)
 {
     if (isGameOver) return;
+    if (players.empty()) return;
 
     // Read P2P packets
     ReceiveNetworkMoves();
 
-    if (isGameOver) return;
+    if (isGameOver || players.empty()) return;
 
     // Simple turn timer logic
     turnTimer -= dt;
@@ -104,6 +105,12 @@ void GameManager::ReceiveNetworkMoves()
                 }
                 CheckGameOver();
             }
+            else if (packetType == PacketTypes::NEXT_TURN)
+            {
+                int nextID = 0;
+                packet >> nextID;
+                SyncNextTurn(nextID);
+            }
         }
         else if (status == sf::Socket::Status::Disconnected || status == sf::Socket::Status::Error)
         {
@@ -151,9 +158,33 @@ void GameManager::BroadcastMove(int gx, int gy, int playerID)
     NM.SendToAllConnections(packet);
 }
 
+void GameManager::BroadcastNextTurn(int nextPlayerID)
+{
+    sf::Packet packet;
+    packet << (int)PacketTypes::NEXT_TURN << nextPlayerID;
+    NM.SendToAllConnections(packet);
+}
+
+void GameManager::SyncNextTurn(int nextPlayerID)
+{
+    for (int i = 0; i < (int)players.size(); i++)
+    {
+        if (players[i].id == nextPlayerID)
+        {
+            if (currentTurnIndex != i)
+            {
+                currentTurnIndex = i;
+                turnTimer = MAX_TURN_TIME;
+                std::cout << "Network Sync: Turn passed to " << players[i].nickName << std::endl;
+            }
+            break;
+        }
+    }
+}
+
 void GameManager::TryPlacePieceScreen(float mouseX, float mouseY)
 {
-    if (isGameOver) return;
+    if (isGameOver || players.empty()) return;
     if (players[currentTurnIndex].id != localPlayerID) return;
 
     float offsetX = (800.f - (GRIDCOLUMN * CELL_SIZE)) / 2.f;
@@ -179,7 +210,7 @@ bool GameManager::TryPlacePieceGrid(int gx, int gy, int playerIndex)
 
     std::cout << ">>> " << players[playerIndex].nickName << " placed at " << gx << "," << gy << std::endl;
 
-    // Send to peers if it's my turn
+    // Send to plaayers if it's my turn
     if (playerID == localPlayerID) BroadcastMove(gx, gy, playerID);
 
     if (CheckWin(gx, gy, playerID))
@@ -244,6 +275,10 @@ void GameManager::AdvanceTurn()
         if (!players[currentTurnIndex].isSpectator) {
             turnTimer = MAX_TURN_TIME;
             std::cout << "--- Turn: " << players[currentTurnIndex].nickName << " ---" << std::endl;
+
+            // If we are the ones who just finished or if it's our turn starting, broadcast
+            // Usually, the one who finishes their action (move or timeout) should be the one to broadcast
+            BroadcastNextTurn(players[currentTurnIndex].id);
             return;
         }
     }
@@ -260,7 +295,7 @@ void GameManager::CheckGameOver()
         for (int y = 0; y < GRIDROW; y++)
             if (grid[x][y] == 0) boardFull = false;
 
-    // Game ends when 3 players win or board is full
+    
     if (spectators >= 3 || boardFull)
     {
         std::cout << "=== GAME OVER ===" << std::endl;

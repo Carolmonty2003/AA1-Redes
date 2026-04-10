@@ -59,13 +59,19 @@ public:
 		SendToServer(packet);
 	}
 
-	// Search for new packets
+	
 	void NetworkFetch();
 
 	
 	void AddConnection(const std::string& ip, unsigned short port) {
 		auto newSocket = std::make_unique<sf::TcpSocket>();
-		if (newSocket->connect(sf::IpAddress(ip), port) == sf::Socket::Status::Done) {
+		auto address = sf::IpAddress::resolve(ip);
+		if (!address) {
+			std::cerr << "Invalid IP address: " << ip << std::endl;
+			return;
+		}
+
+		if (newSocket->connect(*address, port) == sf::Socket::Status::Done) {
 			std::cout << "Connected to rival at " << ip << ":" << port << std::endl;
 			newSocket->setBlocking(false);
 			gameConnections.push_back(std::move(newSocket));

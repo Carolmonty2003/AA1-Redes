@@ -17,7 +17,7 @@ int main()
 	sf::RenderWindow window(sf::VideoMode({800, 600}), "Conecta3 Cliente");
 	window.setFramerateLimit(60);
 
-	// Escenas
+	
 	GameScene* gameScene = new GameScene();
     LobbyScene* lobbyScene = new LobbyScene();
 
@@ -32,7 +32,7 @@ int main()
 	{
 		
 		float dt = dtClock.restart().asSeconds();
-		// Eventos
+		
 		while (const std::optional<sf::Event> event = window.pollEvent())
 		{
 			if (event->is<sf::Event::Closed>())
@@ -46,8 +46,8 @@ int main()
 		
 		SM.UpdateCurrentScene(dt);
 
-		// Renderizado
-		window.clear(sf::Color(30, 30, 30)); // Gris oscuro
+		
+		window.clear(sf::Color(30, 30, 30));
 
 		if (SM.GetCurrentScene())
 		{

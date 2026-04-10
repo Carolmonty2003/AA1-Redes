@@ -57,12 +57,12 @@ public:
 
 	inline void UpdateCurrentScene(float dt) {
 		if (nextScene != "") {
-			currentScene->OnExit();
+			if (currentScene) currentScene->OnExit();
 			currentScene = scenes[nextScene];
-			currentScene->OnEnter();
+			if (currentScene) currentScene->OnEnter();
 			nextScene = "";
 		}
-		currentScene->Update(dt);
+		if (currentScene) currentScene->Update(dt);
 	}
 
 

@@ -65,6 +65,9 @@ public:
    
     void AdvanceTurn();
 
+    void SyncNextTurn(int nextPlayerID);
+    void BroadcastNextTurn(int nextPlayerID);
+
     void CheckGameOver();
 
    

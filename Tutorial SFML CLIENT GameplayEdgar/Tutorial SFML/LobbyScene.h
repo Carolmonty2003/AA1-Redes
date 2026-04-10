@@ -40,7 +40,7 @@ public:
 
             if (kpInfo && kpInfo->code == sf::Keyboard::Key::M)
             {
-                NM.DisconectFromServer();
+                NM.DisconnectFromServer();
             }
 
             if (kpInfo && kpInfo->code == sf::Keyboard::Key::N)
@@ -52,7 +52,7 @@ public:
 
 	void Update(float dt) override
 	{
-        NM.networkFetch();
+        NM.NetworkFetch();
 	}
 
 	void Render(sf::RenderWindow& window) override

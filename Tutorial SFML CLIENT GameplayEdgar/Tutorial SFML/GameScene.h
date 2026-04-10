@@ -18,6 +18,11 @@ public:
         gameManager.InitGame(players, localID);
     }
 
+    void SyncNextTurn(int playerID)
+    {
+        gameManager.SyncNextTurn(playerID);
+    }
+
     void OnEnter() override
     {
         std::cout << "Entrando a GameScene..." << std::endl;
