@@ -52,7 +52,7 @@ public:
 
 	void Update(float dt) override
 	{
-      
+        NM.networkFetch();
 	}
 
 	void Render(sf::RenderWindow& window) override

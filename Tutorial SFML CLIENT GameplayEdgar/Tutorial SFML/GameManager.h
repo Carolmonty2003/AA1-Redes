@@ -4,6 +4,8 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Network.hpp>
 #include "Player.h"
+#include "PacketTypes.h"
+
 
 #define GRIDCOLUMN 6
 #define GRIDROW 6
@@ -11,8 +13,11 @@
 class GameManager
 {
 private:
-    const short cellSize = 90;
+  
+  
+    const short CELL_SIZE = 90;
 
+   
     std::vector<Player> players;
     int currentTurnIndex = 0;
     float turnTimer = 0.0f;
@@ -20,28 +25,51 @@ private:
 
     std::vector<int> victoryOrder;
     bool isGameOver = false;
-
     sf::Font font;
+    int localPlayerID = 1;
+
+    /// gx Columna 
+    /// gy Fila 
+    void BroadcastMove(int gx, int gy, int playerID);
+
+    
+    void ReceiveNetworkMoves();
+
+   
+    void HandlePeerDisconnection(sf::TcpSocket* socket);
+
+    int GetPlayerIndexBySocket(sf::TcpSocket* socket) const;
 
 public:
-	std::vector<std::vector<short>> grid;
-
-	GameManager();
-
-    void InitGame();
-    void Update(float dt);
     
-    void TryPlacePieceScreen(float mouseX, float mouseY);
-    
+    std::vector<std::vector<short>> grid;
+
+    GameManager();
+
    
+    void InitGame(const std::vector<Player>& connectedPlayers,
+                  int localID);
+
+    
+    void Update(float dt);
+
+   
+    void TryPlacePieceScreen(float mouseX, float mouseY);
+
+ 
     bool TryPlacePieceGrid(int gx, int gy, int playerIndex);
 
+  
     bool CheckWin(int gx, int gy, int playerID);
+
+   
     void AdvanceTurn();
+
     void CheckGameOver();
 
-    void AddPieceToGrid(const std::vector<std::vector<short>>& piece, int offsetX = 0, int offsetY = 0);
-
+   
     void DrawGrid(sf::RenderWindow& window);
+
+   
     void DrawHUD(sf::RenderWindow& window);
 };

@@ -1,85 +1,170 @@
 #include "GameManager.h"
+#include "NetworkManager.h"
 #include <string>
+#include <algorithm>
 
 GameManager::GameManager()
 {
     grid.assign(GRIDCOLUMN, std::vector<short>(GRIDROW, 0));
-    
-    // Load standard Windows font
-    if (!font.openFromFile("C:\\Windows\\Fonts\\arial.ttf")) {
-        std::cerr << "Warning: Failed to open arial.ttf font." << std::endl;
+
+    if (!font.openFromFile("C:\\Windows\\Fonts\\arial.ttf"))
+    {
+        std::cerr << "Warning: Arial font not found." << std::endl;
     }
 }
 
-void GameManager::InitGame()
+void GameManager::InitGame(const std::vector<Player>& connectedPlayers,
+                           int localID)
 {
+    // Reset board
     grid.assign(GRIDCOLUMN, std::vector<short>(GRIDROW, 0));
-    
-    // Create 4 players
-    players.clear();
-    players.push_back(Player(1, "Player 1 (You)", 1250, sf::Color::Cyan, true));
-    players.push_back(Player(2, "Player 2 (Bot)", 1100, sf::Color::Red, false));
-    players.push_back(Player(3, "Player 3 (Bot)", 1350, sf::Color::Green, false));
-    players.push_back(Player(4, "Player 4 (Bot)",  950, sf::Color::Yellow, false));
-    
+
+    // Save players
+    players      = connectedPlayers;
+    localPlayerID = localID;
+
     currentTurnIndex = 0;
-    turnTimer = MAX_TURN_TIME;
+    turnTimer        = MAX_TURN_TIME;
     victoryOrder.clear();
     isGameOver = false;
-    
-    std::cout << "--- Partida Iniciada ---" << std::endl;
+
+    std::cout << "--- Game Started (P2P) ---" << std::endl;
+    std::cout << "My ID: " << localPlayerID << std::endl;
 }
 
 void GameManager::Update(float dt)
 {
     if (isGameOver) return;
 
+    // Read P2P packets
+    ReceiveNetworkMoves();
+
+    if (isGameOver) return;
+
+    // Simple turn timer logic
     turnTimer -= dt;
     if (turnTimer <= 0.0f)
     {
-        std::cout << "Tiempo agotado para " << players[currentTurnIndex].nickName << ". Se salta el turno." << std::endl;
+        std::cout << "Time out for " << players[currentTurnIndex].nickName << std::endl;
         AdvanceTurn();
-        return;
     }
+}
 
-    // Bot logic
-    if (!players[currentTurnIndex].isLocal)
+void GameManager::ReceiveNetworkMoves()
+{
+    auto& connections = NM.GetConnections();
+    for (auto& sock : connections)
     {
-        // Wait ~2 seconds then place a piece somewhere random
-        if (MAX_TURN_TIME - turnTimer > 2.0f)
+        if (!sock) continue;
+
+        sf::Packet packet;
+        sf::Socket::Status status = sock->receive(packet);
+
+        if (status == sf::Socket::Status::Done)
         {
-            std::vector<std::pair<int, int>> emptySpaces;
-            for (int x = 0; x < GRIDCOLUMN; x++) {
-                for (int y = 0; y < GRIDROW; y++) {
-                    if (grid[x][y] == 0) {
-                        emptySpaces.push_back({x, y});
+            int packetType = -1;
+            packet >> packetType;
+
+            if (packetType == PacketTypes::PIECEADDED)
+            {
+                int senderID = 0;
+                int gx = 0, gy = 0;
+                packet >> senderID >> gx >> gy;
+
+                // Find who sent it
+                int playerIdx = -1;
+                for (int i = 0; i < (int)players.size(); i++)
+                {
+                    if (players[i].id == senderID) {
+                        playerIdx = i;
+                        break;
                     }
                 }
-            }
 
-            if (!emptySpaces.empty()) {
-                int r = rand() % emptySpaces.size();
-                TryPlacePieceGrid(emptySpaces[r].first, emptySpaces[r].second, currentTurnIndex);
+                if (playerIdx != -1)
+                {
+                    std::cout << "Move from " << players[playerIdx].nickName << " at " << gx << "," << gy << std::endl;
+                    TryPlacePieceGrid(gx, gy, playerIdx);
+                }
+            }
+            else if (packetType == PacketTypes::PLAYER_DISCONNECTED)
+            {
+                int disconnectedID = 0;
+                packet >> disconnectedID;
+                
+                for (int i = 0; i < (int)players.size(); i++)
+                {
+                    if (players[i].id == disconnectedID && !players[i].isSpectator)
+                    {
+                        players[i].isSpectator = true;
+                        std::cout << players[i].nickName << " disconnected (notified by peer)" << std::endl;
+                        if (i == currentTurnIndex) AdvanceTurn();
+                        break;
+                    }
+                }
+                CheckGameOver();
             }
         }
+        else if (status == sf::Socket::Status::Disconnected || status == sf::Socket::Status::Error)
+        {
+            HandlePeerDisconnection(sock.get());
+        }
     }
+}
+
+void GameManager::HandlePeerDisconnection(sf::TcpSocket* socket)
+{
+    int playerIdx = GetPlayerIndexBySocket(socket);
+    if (playerIdx == -1) return;
+
+    Player& p = players[playerIdx];
+    if (p.isSpectator) return;
+
+    std::cout << p.nickName << " disconnected. Kicking them out." << std::endl;
+    p.isSpectator = true;
+
+    sf::Packet notify;
+    notify << (int)PacketTypes::PLAYER_DISCONNECTED << p.id;
+    NM.SendToAllConnections(notify);
+
+    if (playerIdx == currentTurnIndex) AdvanceTurn();
+    CheckGameOver();
+}
+
+int GameManager::GetPlayerIndexBySocket(sf::TcpSocket* socket) const
+{
+    auto& connections = NM.GetConnections();
+    int connIdx = 0;
+    for (int i = 0; i < (int)players.size(); i++)
+    {
+        if (players[i].id == localPlayerID) continue;
+        if (connIdx < (int)connections.size() && connections[connIdx].get() == socket) return i;
+        connIdx++;
+    }
+    return -1;
+}
+
+void GameManager::BroadcastMove(int gx, int gy, int playerID)
+{
+    sf::Packet packet;
+    packet << (int)PacketTypes::PIECEADDED << playerID << gx << gy;
+    NM.SendToAllConnections(packet);
 }
 
 void GameManager::TryPlacePieceScreen(float mouseX, float mouseY)
 {
     if (isGameOver) return;
-    if (!players[currentTurnIndex].isLocal) return; // Not local player's turn
+    if (players[currentTurnIndex].id != localPlayerID) return;
 
-    float offsetX = (800.f - (GRIDCOLUMN * cellSize)) / 2.f;
-    float offsetY = (600.f - (GRIDROW * cellSize)) / 2.f;
+    float offsetX = (800.f - (GRIDCOLUMN * CELL_SIZE)) / 2.f;
+    float offsetY = (600.f - (GRIDROW * CELL_SIZE)) / 2.f;
 
-    if (mouseX < offsetX || mouseX > offsetX + (GRIDCOLUMN * cellSize) ||
-        mouseY < offsetY || mouseY > offsetY + (GRIDROW * cellSize)) {
-        return; // Click outside grid
-    }
+    // Ignore clicks outside grid
+    if (mouseX < offsetX || mouseX > offsetX + (GRIDCOLUMN * CELL_SIZE) ||
+        mouseY < offsetY || mouseY > offsetY + (GRIDROW * CELL_SIZE)) return;
 
-    int gx = (int)((mouseX - offsetX) / cellSize);
-    int gy = (int)((mouseY - offsetY) / cellSize);
+    int gx = (int)((mouseX - offsetX) / CELL_SIZE);
+    int gy = (int)((mouseY - offsetY) / CELL_SIZE);
 
     TryPlacePieceGrid(gx, gy, currentTurnIndex);
 }
@@ -87,67 +172,58 @@ void GameManager::TryPlacePieceScreen(float mouseX, float mouseY)
 bool GameManager::TryPlacePieceGrid(int gx, int gy, int playerIndex)
 {
     if (gx < 0 || gx >= GRIDCOLUMN || gy < 0 || gy >= GRIDROW) return false;
+    if (grid[gx][gy] != 0) return false;
 
-    if (grid[gx][gy] != 0) {
-        if (players[playerIndex].isLocal) {
-            std::cout << "Turno invalido: Posicion acupada." << std::endl;
-        }
-        return false; // Cell occupied
-    }
+    int playerID = players[playerIndex].id;
+    grid[gx][gy] = (short)playerID;
 
-    grid[gx][gy] = players[playerIndex].id;
-    std::cout << ">>> " << players[playerIndex].nickName << " coloca ficha en la posicion (" << gx << ", " << gy << ")" << std::endl;
+    std::cout << ">>> " << players[playerIndex].nickName << " placed at " << gx << "," << gy << std::endl;
 
-    if (CheckWin(gx, gy, players[playerIndex].id))
+    // Send to peers if it's my turn
+    if (playerID == localPlayerID) BroadcastMove(gx, gy, playerID);
+
+    if (CheckWin(gx, gy, playerID))
     {
-        std::cout << ">>> OMG! " << players[playerIndex].nickName << " HA GANADO su linea! Pasa a modo espectador." << std::endl;
         players[playerIndex].isSpectator = true;
-        victoryOrder.push_back(players[playerIndex].id);
+        victoryOrder.push_back(playerID);
+        std::cout << "!!! " << players[playerIndex].nickName << " WON!" << std::endl;
         CheckGameOver();
     }
-    
-    if (!isGameOver) {
-        AdvanceTurn();
-    }
 
+    if (!isGameOver) AdvanceTurn();
     return true;
 }
 
 bool GameManager::CheckWin(int gx, int gy, int playerID)
 {
-    int directions[4][2][2] = {
-        {{-1, 0}, {1, 0}},  // Horizontal
-        {{0, -1}, {0, 1}},  // Vertical
-        {{-1, -1}, {1, 1}}, // Diagonal \ 
-        {{-1, 1}, {1, -1}}  // Diagonal /
+    const int dirs[4][2][2] = {
+        {{-1, 0}, {1, 0}},  // Horiz
+        {{0, -1}, {0, 1}},  // Vert
+        {{-1,-1}, {1, 1}},  // Diag \ 
+        {{-1, 1}, {1,-1}}   // Diag /
     };
 
-    for (int d = 0; d < 4; ++d) {
-        int count = 1; 
-        for (int i = 0; i < 2; ++i) { 
+    for (int d = 0; d < 4; d++) {
+        int count = 1;
+        for (int side = 0; side < 2; side++) {
             int k = 1;
-            while(true) {
-                int nx = gx + directions[d][i][0] * k;
-                int ny = gy + directions[d][i][1] * k;
+            while (true) {
+                int nx = gx + dirs[d][side][0] * k;
+                int ny = gy + dirs[d][side][1] * k;
                 if (nx < 0 || nx >= GRIDCOLUMN || ny < 0 || ny >= GRIDROW) break;
-                if (grid[nx][ny] == playerID) {
-                    count++;
-                    k++;
-                } else {
-                    break;
-                }
+                if (grid[nx][ny] != playerID) break;
+                count++;
+                k++;
             }
         }
-        if (count >= 3) {
-            return true;
-        }
+        if (count >= 3) return true;
     }
     return false;
 }
 
 void GameManager::AdvanceTurn()
 {
-    // Check for draw (full board)
+    // Check if board is full (Draw)
     bool boardFull = true;
     for (int x = 0; x < GRIDCOLUMN; x++) {
         for (int y = 0; y < GRIDROW; y++) {
@@ -156,111 +232,63 @@ void GameManager::AdvanceTurn()
     }
 
     if (boardFull) {
-        std::cout << "Tablero lleno. NINGUN ESPACIO." << std::endl;
+        std::cout << "Draw! Board is full." << std::endl;
         CheckGameOver();
         return;
     }
 
-    int nextIndex = currentTurnIndex;
-    int safeguard = 0;
-    while(true) {
-        nextIndex = (nextIndex + 1) % players.size();
-        safeguard++;
-        if (!players[nextIndex].isSpectator) {
-            currentTurnIndex = nextIndex;
-            std::cout << "--- Turno de " << players[currentTurnIndex].nickName << " ---" << std::endl;
-            break;
-        }
-        if (safeguard > 10) {
-            CheckGameOver(); // All are spectators or error
-            break;
+    // Move to next player that is not a spectator
+    int total = (int)players.size();
+    for (int i = 0; i < total; i++) {
+        currentTurnIndex = (currentTurnIndex + 1) % total;
+        if (!players[currentTurnIndex].isSpectator) {
+            turnTimer = MAX_TURN_TIME;
+            std::cout << "--- Turn: " << players[currentTurnIndex].nickName << " ---" << std::endl;
+            return;
         }
     }
-    turnTimer = MAX_TURN_TIME; // Reset timer
+    CheckGameOver();
 }
 
 void GameManager::CheckGameOver()
 {
-    // Check if 3 players won, or all are spectators, or board is full.
-    bool allSpectatorsOrFull = true;
-    int spectatorCount = 0;
-    for(size_t i = 0; i < players.size(); i++) {
-        if (players[i].isSpectator) spectatorCount++;
-    }
-    
-    // boardFull check again
-    bool boardFull = true;
-    for (int x = 0; x < GRIDCOLUMN; x++) {
-        for (int y = 0; y < GRIDROW; y++) {
-            if (grid[x][y] == 0) boardFull = false;
-        }
-    }
+    int spectators = 0;
+    for (const auto& p : players) if (p.isSpectator) spectators++;
 
-    if (spectatorCount >= 3 || boardFull) {
-        std::cout << "FIN DE LA PARTIDA" << std::endl;
-        if (victoryOrder.empty()) {
-            std::cout << "Empate, nadie consiguio 3 en raya!" << std::endl;
-        } else {
-            std::cout << "Orden de victoria:" << std::endl;
-            for (size_t i = 0; i < victoryOrder.size(); i++) {
-                for (auto& p : players) {
-                    if (p.id == victoryOrder[i]) {
-                        std::cout << i + 1 << " LUGAR: " << p.nickName << " - Puntos: " << p.scoreRanking << std::endl;
-                        break;
-                    }
-                }
-            }
-        }
-        std::cout << "Lobby" << std::endl;
-        std::cout << "Enviando conexion a Bootstrap Server" << std::endl;
+    bool boardFull = true;
+    for (int x = 0; x < GRIDCOLUMN; x++)
+        for (int y = 0; y < GRIDROW; y++)
+            if (grid[x][y] == 0) boardFull = false;
+
+    // Game ends when 3 players win or board is full
+    if (spectators >= 3 || boardFull)
+    {
+        std::cout << "=== GAME OVER ===" << std::endl;
         isGameOver = true;
         SM.SetNextScene("LobbyScene");
     }
 }
 
-void GameManager::AddPieceToGrid(const std::vector<std::vector<short>>& piece, int offsetX, int offsetY)
-{
-    for (int x = 0; x < piece.size(); x++)
-    {
-        for (int y = 0; y < piece[x].size(); y++)
-        {
-            if (piece[x][y] != 0)
-            {
-                int gx = x + offsetX;
-                int gy = y + offsetY;
-
-                if (gx >= 0 && gx < GRIDCOLUMN && gy >= 0 && gy < GRIDROW)
-                    grid[gx][gy] = piece[x][y];
-            }
-        }
-    }
-}
-
 void GameManager::DrawGrid(sf::RenderWindow& window)
 {
-    float offsetX = (800.f - (GRIDCOLUMN * cellSize)) / 2.f;
-    float offsetY = (600.f - (GRIDROW * cellSize)) / 2.f;
+    float offsetX = (800.f - (GRIDCOLUMN * CELL_SIZE)) / 2.f;
+    float offsetY = (600.f - (GRIDROW * CELL_SIZE)) / 2.f;
 
-    for (int x = 0; x < GRIDCOLUMN; x++)
-    {
-        for (int y = 0; y < GRIDROW; y++)
-        {
-            sf::RectangleShape cell({ (float)cellSize - 2.f, (float)cellSize - 2.f });
-            cell.setPosition({ offsetX + (x * cellSize), offsetY + (y * cellSize) });
+    for (int x = 0; x < GRIDCOLUMN; x++) {
+        for (int y = 0; y < GRIDROW; y++) {
+            sf::RectangleShape cell({ (float)CELL_SIZE - 2.f, (float)CELL_SIZE - 2.f });
+            cell.setPosition({ offsetX + (x * CELL_SIZE), offsetY + (y * CELL_SIZE) });
 
-            // Assign color based on the player ID in grid[x][y]
-            sf::Color cellColor = sf::Color(50, 50, 50); // empty block default
+            sf::Color color = sf::Color(50, 50, 50); // empty
             if (grid[x][y] != 0) {
-                // Find player matching ID
-                for (auto& p : players) {
+                for (const auto& p : players) {
                     if (p.id == grid[x][y]) {
-                        cellColor = p.color;
+                        color = p.color;
                         break;
                     }
                 }
             }
-            
-            cell.setFillColor(cellColor);
+            cell.setFillColor(color);
             window.draw(cell);
         }
     }
@@ -268,33 +296,31 @@ void GameManager::DrawGrid(sf::RenderWindow& window)
 
 void GameManager::DrawHUD(sf::RenderWindow& window)
 {
-    if (players.empty() || players.size() <= currentTurnIndex) return;
+    if (players.empty()) return;
 
-    // Turn info
-    sf::Text turnText(font);
-    turnText.setCharacterSize(20);
-    turnText.setPosition({ 20.f, 20.f });
-    
-    std::string textStr = "Turno de: " + players[currentTurnIndex].nickName + "\n";
-    textStr += "Tiempo Restante: " + std::to_string((int)turnTimer) + "s";
-    
-    turnText.setString(textStr);
-    turnText.setFillColor(players[currentTurnIndex].color);
-    window.draw(turnText);
+    sf::Text text(font);
+    text.setCharacterSize(20);
+    text.setPosition({ 20.f, 20.f });
+
+    std::string str = "Turn: " + players[currentTurnIndex].nickName + "\n";
+    str += "Time: " + std::to_string((int)turnTimer) + "s";
+    if (players[currentTurnIndex].id == localPlayerID) str += " (YOUR TURN)";
+
+    text.setString(str);
+    text.setFillColor(players[currentTurnIndex].color);
+    window.draw(text);
 
     // Scoreboard
-    sf::Text scoreText(font);
-    scoreText.setCharacterSize(16);
-    scoreText.setPosition({ 600.f, 20.f });
+    sf::Text score(font);
+    score.setCharacterSize(16);
+    score.setPosition({ 600.f, 20.f });
 
-    std::string scoreStr = "Ranking:\n";
-    for(auto& p : players) {
+    std::string scoreStr = "Players:\n";
+    for (const auto& p : players) {
         scoreStr += p.nickName + ": " + std::to_string(p.scoreRanking);
         if (p.isSpectator) scoreStr += " (ESP)";
         scoreStr += "\n";
     }
-    
-    scoreText.setString(scoreStr);
-    scoreText.setFillColor(sf::Color::White);
-    window.draw(scoreText);
+    score.setString(scoreStr);
+    window.draw(score);
 }
