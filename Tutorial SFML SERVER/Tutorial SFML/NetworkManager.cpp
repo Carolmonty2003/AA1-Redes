@@ -41,7 +41,7 @@ void NetworkManager::AcceptNewClients()
 
     if (m_listener.accept(*newSocket) == sf::Socket::Status::Done)
     {
-        ConnectedClient newClient;
+        ConnectedClient newClient{};
         newClient.playerId = m_nextPlayerId++;
         newClient.socket = newSocket.get();
         newClient.ip = newSocket->getRemoteAddress().value_or(sf::IpAddress::Any);
@@ -134,6 +134,9 @@ void NetworkManager::HandleCreateRoomRequest(ConnectedClient& client, sf::Packet
     SendCreateRoomResponse(client, true, requestData.roomId, "Sala creada correctamente.");
     BroadcastRoomStatus(requestData.roomId);
     TryStartGame(requestData.roomId);
+
+    PrintConnectedClients();
+    m_roomManager.PrintRooms();
 }
 
 void NetworkManager::HandleJoinRoomRequest(ConnectedClient& client, sf::Packet& packet)
@@ -177,6 +180,8 @@ void NetworkManager::HandleJoinRoomRequest(ConnectedClient& client, sf::Packet& 
     SendJoinRoomResponse(client, true, requestData.roomId, "Te has unido a la sala correctamente.");
     BroadcastRoomStatus(requestData.roomId);
     TryStartGame(requestData.roomId);
+    PrintConnectedClients();
+    m_roomManager.PrintRooms();
 }
 
 void NetworkManager::SendCreateRoomResponse(ConnectedClient& client, bool success, const std::string& roomId, const std::string& message)
@@ -397,4 +402,27 @@ void NetworkManager::RemoveDisconnectedClient(int index)
     }
 
     m_clients.erase(m_clients.begin() + index);
+    PrintConnectedClients();
+    m_roomManager.PrintRooms();
+}
+
+void NetworkManager::PrintConnectedClients() const
+{
+    std::cout << "\n[SERVER] Clientes conectados:\n";
+
+    if (m_clients.empty())
+    {
+        std::cout << "  No hay clientes conectados.\n";
+        return;
+    }
+
+    for (const ConnectedClient& client : m_clients)
+    {
+        std::cout << "  playerId: " << client.playerId
+            << " | username: " << client.username
+            << " | roomId: " << client.currentRoomId
+            << " | ip: " << client.ip.toString()
+            << " | gamePort: " << client.gamePort
+            << "\n";
+    }
 }

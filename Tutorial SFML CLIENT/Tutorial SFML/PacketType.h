@@ -4,14 +4,17 @@ enum class PacketType
 {
     NONE = 0,
 
-    // conexión/login
+    // Conexion inicial
     HANDSHAKE,
+
+    // Login / Registro
     LOGIN_REQUEST,
     LOGIN_RESPONSE,
+
     REGISTER_REQUEST,
     REGISTER_RESPONSE,
 
-    // lobby
+    // Lobby
     CREATE_ROOM_REQUEST,
     CREATE_ROOM_RESPONSE,
 
@@ -19,11 +22,8 @@ enum class PacketType
     JOIN_ROOM_RESPONSE,
 
     ROOM_STATUS_UPDATE,
-    ROOM_PLAYER_JOINED,
-    ROOM_PLAYER_LEFT,
-
     START_GAME,
 
-    // utilidad
+    // Generico
     ERROR_MESSAGE
 };

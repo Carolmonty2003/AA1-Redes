@@ -38,6 +38,8 @@ private:
 
     void RemoveDisconnectedClient(int index);
 
+    void PrintConnectedClients() const;
+
 private:
     sf::TcpListener m_listener;
     bool m_isRunning;
