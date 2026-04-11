@@ -2,6 +2,10 @@
 #include <iostream>
 #include <string>
 #include <time.h>
+#include <jdbc/mysql_driver.h>
+#include <jdbc/mysql_connection.h>
+#include <jdbc/cppconn/statement.h>
+#include <jdbc/cppconn/resultset.h>
 
 #define LISTENER_PORT 55000
 
@@ -27,6 +31,11 @@ void main()
 	sf::TcpListener listener;
 
 	sf::TcpSocket client;
+
+   //https://github.com/anhstudios/mysql-connector-cpp/blob/master/examples/standalone_example.cpp
+	sql::Connection* conn = sql::mysql::get_mysql_driver_instance()->connect("tcp://localhost:3306", "root", "");
+	conn->setSchema("videogame");
+
 
 	bool closeServer = false;
 
@@ -75,5 +84,5 @@ void main()
 	
 	client.disconnect();
 	closeServer = true;
-
+	conn->close();
 }
