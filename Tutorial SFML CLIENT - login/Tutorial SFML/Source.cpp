@@ -98,7 +98,8 @@ int main()
 			{
 				gameOver = true;
 			}
-			while (const std::optional event = window.pollEvent()) https://www.sfml-dev.org/tutorials/3.0/window/events/#sfwindowbasehandleevents
+		https://www.sfml-dev.org/tutorials/3.0/window/events/#sfwindowbasehandleevents
+			while (const std::optional event = window.pollEvent())
 			{
 				closeButton.handleEvent(*event, window);
 				usernameInputfield.handleEvent(*event, window);
