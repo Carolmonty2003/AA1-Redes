@@ -1,88 +1,67 @@
-#include <SFML/Network.hpp>
 #include <iostream>
 #include <string>
+#include "NetworkManager.h"
 
-#define SERVER_PORT 55000
-//IMPORTANTE CERRAR LA CONEXION DEL CLIENTE
+constexpr unsigned short SERVER_PORT = 55000;
 const sf::IpAddress SERVER_IP = sf::IpAddress(127, 0, 0, 1);
 
-//ESTO EN EL NETWORKMANAGER
-enum tipoPaquete { HANDSHAKE, LOGIN, MOVIMINETO };
-
-sf::Packet& operator >>(sf::Packet& packet, tipoPaquete& tipo)
+int main()
 {
-	int temp;
-	packet >> temp;
-	tipo = static_cast<tipoPaquete>(temp);
+    NetworkManager networkManager;
 
-	return packet;
-}
+    if (!networkManager.Connect(SERVER_IP, SERVER_PORT))
+    {
+        return -1;
+    }
 
-void HandShake(sf::Packet data)
-{
-	std::string receivedMessage;
-	data >> receivedMessage;
-	std::cout << "Mensaje enviado del servidor " << receivedMessage << std::endl;
-}
+    std::string command;
+    std::string roomId;
+    std::string nickname = "Edgar";
+    unsigned short gamePort = 56000;
 
-void Login(sf::Packet data)
-{
-	int receivedMessage;
-	std::string receivedGreeting;
-	data >> receivedMessage;
-	data >> receivedGreeting;
-	std::cout << "Mensaje enviado del servidor int " << receivedMessage << receivedGreeting << std::endl;
-}
+    networkManager.GetClientState().nickname = nickname;
+    networkManager.GetClientState().playerId = 1;
 
-void main()
-{
-	sf::TcpSocket socket;
-	if (socket.connect(SERVER_IP, SERVER_PORT) != sf::Socket::Status::Done)
-	{
-		std::cerr << "Error al conectar co el servidor" << std::endl;
-	}
-	else
-	{
-		std::cout << "Conectado con el servidor " << std::endl;
+    while (true)
+    {
+        networkManager.ReceiveData();
 
-		socket.setBlocking(false);
+        std::cout << "\nComando (create / join / state / exit): ";
+        std::cin >> command;
 
-		sf::Packet packet; //Un paquete para enviar y otro para recibir es decir uno para el server y otro para el cliente
+        if (command == "create")
+        {
+            std::cout << "RoomId: ";
+            std::cin >> roomId;
+            networkManager.SendCreateRoomRequest(roomId, nickname, gamePort);
+        }
+        else if (command == "join")
+        {
+            std::cout << "RoomId: ";
+            std::cin >> roomId;
+            networkManager.SendJoinRoomRequest(roomId, nickname, gamePort);
+        }
+        else if (command == "state")
+        {
+            const ClientState& state = networkManager.GetClientState();
 
-		bool gameOver = false;
+            std::cout << "\n----- CLIENT STATE -----" << std::endl;
+            std::cout << "playerId: " << state.playerId << std::endl;
+            std::cout << "nickname: " << state.nickname << std::endl;
+            std::cout << "currentRoomId: " << state.currentRoomId << std::endl;
+            std::cout << "isHost: " << state.isHost << std::endl;
+            std::cout << "isWaitingInRoom: " << state.isWaitingInRoom << std::endl;
+            std::cout << "hasGameStarted: " << state.hasGameStarted << std::endl;
+            std::cout << "roomPlayers: " << state.roomPlayers.size() << std::endl;
+        }
+        else if (command == "exit")
+        {
+            break;
+        }
 
-		while (!gameOver)
-		{
+        networkManager.ReceiveData();
+    }
 
-			if (socket.receive(packet) == sf::Socket::Status::Done)
-			{
-				tipoPaquete tipo;
-
-				packet >> tipo;
-
-				switch (tipo)
-				{
-				case HANDSHAKE:
-					HandShake(packet);
-					break;
-				case LOGIN:
-					Login(packet);
-					break;
-				case MOVIMINETO:
-
-					break;
-				default:
-					break;
-				}
-
-				packet.clear();
-		
-			}
-			if (socket.receive(packet) == sf::Socket::Status::Disconnected)
-			{
-				gameOver = true;
-			}
-		}
-		
-	}
+    networkManager.CloseConnection();
+    return 0;
 }

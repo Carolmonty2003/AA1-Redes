@@ -135,7 +135,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ConnectedClient.cpp" />
+    <ClCompile Include="NetworkManager.cpp" />
+    <ClCompile Include="ProtocolData.cpp" />
+    <ClCompile Include="RoomManager.cpp" />
     <ClCompile Include="Source.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ConnectedClient.h" />
+    <ClInclude Include="NetworkManager.h" />
+    <ClInclude Include="PacketType.h" />
+    <ClInclude Include="ProtocolData.h" />
+    <ClInclude Include="Room.h" />
+    <ClInclude Include="RoomManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
