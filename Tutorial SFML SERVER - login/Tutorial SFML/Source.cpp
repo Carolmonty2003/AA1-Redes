@@ -2,15 +2,39 @@
 #include <iostream>
 #include <string>
 #include <time.h>
-#include <jdbc/mysql_driver.h>
-#include <jdbc/mysql_connection.h>
-#include <jdbc/cppconn/statement.h>
-#include <jdbc/cppconn/resultset.h>
-#include <jdbc/cppconn/prepared_statement.h>
+#include "mysql_connection.h"
+#include <cppconn/driver.h>
+#include <cppconn/exception.h>
+#include <cppconn/prepared_statement.h>
+#include <cppconn/resultset.h>
 
 #define LISTENER_PORT 55000
+#define SERVER "127.0.0.1::3306"
+#define USERNAME "root"
+#define PASSWORD ""
+#define DATABASE "videogame"
 
-sql::Connection* conn; 
+
+
+
+void ConnectDatabase(sql::Driver*& driver, sql::Connection*& con) {
+	try {
+		driver = get_driver_instance();
+		con = driver->connect(SERVER, USERNAME, PASSWORD);
+		con->setSchema(DATABASE);
+		std::cout << "Connection done" << std::endl;
+	}
+	catch (sql::SQLException e) {
+		std::cout << "Could nor connect. Error message: " << e.what() << std::endl;
+	}
+}
+void DisconnectDatabase(sql::Connection* con) {
+	con->close();
+	if (con->isClosed()) {
+		std::cout << "Connection closed" << std::endl;
+		delete con;
+	}
+}
 
 //IMPORTANTE CERRAR LA CONEXION
 void SendData(sf::TcpSocket& client, sf::Packet& packet)
@@ -25,16 +49,16 @@ void SendData(sf::TcpSocket& client, sf::Packet& packet)
 		std::cout << "Error al enviar el mensaje" << std::endl;
 	}
 }
-void GetAllPlayers() {
-	sql::PreparedStatement* pstmt = conn->prepareStatement("SELECT * FROM players");
+void GetAllPlayers(sql::Connection*& con) {
+	sql::PreparedStatement* pstmt = con->prepareStatement("SELECT * FROM players");
 	sql::ResultSet* res = pstmt->executeQuery();
 	while (res->next())
 		std::cout << "Id: " << res->getInt("Id") << " | User: " << res->getString("Username") << " | Score: " << res->getInt("Score") << std::endl;
 	delete res;
 	delete pstmt;
 }
-bool LoginPlayer() {
-	sql::PreparedStatement* pstmt = conn->prepareStatement("CALL LoginPlayer( ?, ? )");
+bool LoginPlayer(sql::Connection*& con) {
+	sql::PreparedStatement* pstmt = con->prepareStatement("CALL LoginPlayer( ?, ? )");
 	pstmt->setString(1, "Radev");
 	pstmt->setString(2, "RichardPringado");
 	sql::ResultSet* res = pstmt->executeQuery();
@@ -43,20 +67,20 @@ bool LoginPlayer() {
 	delete pstmt;
 	return savedResult;
 }
-void AddPlayer(){
-	sql::PreparedStatement* pstmt = conn->prepareStatement("CALL AddPlayer( ?, ? )");
+void AddPlayer(sql::Connection*& con){
+	sql::PreparedStatement* pstmt = con->prepareStatement("CALL AddPlayer( ?, ? )");
 	pstmt->setString(1, "JuanCuesta");
 	pstmt->setString(2, "JuntaUrgente");
 	pstmt->execute();
 	delete pstmt;
 }
-void DeletePlayer() {
-	sql::PreparedStatement* pstmt = conn->prepareStatement("CALL DeletePlayer(?)");
+void DeletePlayer(sql::Connection*& con) {
+	sql::PreparedStatement* pstmt = con->prepareStatement("CALL DeletePlayer(?)");
 	pstmt->setInt(1, 5); 
 	pstmt->execute();
 }
-void PrintRanking() {
-	sql::PreparedStatement* pstmt = conn->prepareStatement("CALL GetRanking(?)");
+void PrintRanking(sql::Connection*& con) {
+	sql::PreparedStatement* pstmt = con->prepareStatement("CALL GetRanking(?)");
 	pstmt->setString(1, "Richard"); 
 	sql::ResultSet* res = pstmt->executeQuery();
 	while (res->next())
@@ -76,13 +100,14 @@ void main()
    //https://github.com/anhstudios/mysql-connector-cpp/blob/master/examples/standalone_example.cpp
 	//https://www.reddit.com/r/cpp_questions/comments/1i1snro/coding_with_c_and_mysql_how_do_i_print_out_select/
 	//https://stackoverflow.com/questions/18364463/sql-using-a-prepared-statement-for-the-from-clause
-	conn = sql::mysql::get_mysql_driver_instance()->connect("tcp://localhost:3306", "root", "");
-	conn->setSchema("videogame");
-	//GetAllPlayers();
+	sql::Connection* conn;
+	sql::Driver* driver;
+	ConnectDatabase(driver,conn);
+	GetAllPlayers(conn);
 	//LoginPlayer();
 	//AddPlayer();
 	//DeletePlayer();
-	PrintRanking();
+	//PrintRanking();
 	bool closeServer = false;
 
 	//listener.setBlocking(false);
