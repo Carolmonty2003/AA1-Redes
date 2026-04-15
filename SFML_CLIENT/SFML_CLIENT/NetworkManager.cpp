@@ -4,7 +4,7 @@
 NetworkManager::NetworkManager()
     : m_isConnected(false)
 {
-    m_socket.setBlocking(false);
+   // m_socket.setBlocking(false);
 }
 
 bool NetworkManager::Connect(const sf::IpAddress& serverIp, unsigned short serverPort)
