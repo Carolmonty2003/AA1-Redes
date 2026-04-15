@@ -1,4 +1,5 @@
 #include <SFML/Network.hpp>
+#include "DatabaseConnector.h"
 #include <iostream>
 #include <string>
 #include <time.h>
@@ -22,21 +23,22 @@ void SendData(sf::TcpSocket& client, sf::Packet& packet)
 void main()
 {
 	srand(time(NULL));
-	enum tipoPaquete {HANDSHAKE, LOGIN, MOVIMINETO};
+	enum tipoPaquete { HANDSHAKE, LOGIN, MOVIMINETO };
 
 	sf::TcpListener listener;
-
 	sf::TcpSocket client;
 
 	bool closeServer = false;
 
-	//listener.setBlocking(false);
+	DatabaseConnector* databaseConnector = new DatabaseConnector();
+	databaseConnector->ConnectDatabase();
 
+	
 	if (listener.listen(LISTENER_PORT) != sf::Socket::Status::Done)
 	{
 		std::cerr << "Error al intentar escuchar en el puerto " << LISTENER_PORT << std::endl;
 	}
-	
+
 	while (!closeServer)
 	{
 		std::cout << "Esperando Conexion..." << std::endl;
@@ -50,31 +52,28 @@ void main()
 			packet.clear();
 			switch (tempRandom)
 			{
-				case 0:
-					message = "HOLA MI CLIENTE";
-					packet << tipoPaquete::HANDSHAKE << message;
-					SendData(client,packet);
-					break;
-				case 1:
-					packet << tipoPaquete::LOGIN << messageInt << message;
-					SendData(client, packet);
-					break;
+			case 0:
+				message = "HOLA MI CLIENTE";
+				packet << tipoPaquete::HANDSHAKE << message;
+				SendData(client, packet);
+				break;
+			case 1:
+				packet << tipoPaquete::LOGIN << messageInt << message;
+				SendData(client, packet);
+				break;
 
-				default:
-					break;
+			default:
+				break;
 			}
-
 		}
 		else
 		{
 			std::cerr << "Error al aceptar la conexion" << std::endl;
 		}
-
-		
-
 	}
-	
+
 	client.disconnect();
 	closeServer = true;
-
+	databaseConnector->DisconnectDatabase();
+	
 }
