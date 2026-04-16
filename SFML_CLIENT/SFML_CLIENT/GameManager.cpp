@@ -66,7 +66,7 @@ void GameManager::ReceiveNetworkMoves()
             int packetType = -1;
             packet >> packetType;
 
-            if (packetType == PacketTypes::PIECEADDED)
+            if (packetType == PacketType::PIECEADDED)
             {
                 int senderID = 0;
                 int gx = 0, gy = 0;
@@ -88,7 +88,7 @@ void GameManager::ReceiveNetworkMoves()
                     TryPlacePieceGrid(gx, gy, playerIdx);
                 }
             }
-            else if (packetType == PacketTypes::PLAYER_DISCONNECTED)
+            else if (packetType == PacketType::PLAYER_DISCONNECTED)
             {
                 int disconnectedID = 0;
                 packet >> disconnectedID;
@@ -105,7 +105,7 @@ void GameManager::ReceiveNetworkMoves()
                 }
                 CheckGameOver();
             }
-            else if (packetType == PacketTypes::NEXT_TURN)
+            else if (packetType == PacketType::NEXT_TURN)
             {
                 int nextID = 0;
                 packet >> nextID;
@@ -131,7 +131,7 @@ void GameManager::HandlePeerDisconnection(sf::TcpSocket* socket)
     p.isSpectator = true;
 
     sf::Packet notify;
-    notify << (int)PacketTypes::PLAYER_DISCONNECTED << p.id;
+    notify << (int)PacketType::PLAYER_DISCONNECTED << p.id;
     NM.SendToAllConnections(notify);
 
     if (playerIdx == currentTurnIndex) AdvanceTurn();
@@ -154,14 +154,14 @@ int GameManager::GetPlayerIndexBySocket(sf::TcpSocket* socket) const
 void GameManager::BroadcastMove(int gx, int gy, int playerID)
 {
     sf::Packet packet;
-    packet << (int)PacketTypes::PIECEADDED << playerID << gx << gy;
+    packet << (int)PacketType::PIECEADDED << playerID << gx << gy;
     NM.SendToAllConnections(packet);
 }
 
 void GameManager::BroadcastNextTurn(int nextPlayerID)
 {
     sf::Packet packet;
-    packet << (int)PacketTypes::NEXT_TURN << nextPlayerID;
+    packet << (int)PacketType::NEXT_TURN << nextPlayerID;
     NM.SendToAllConnections(packet);
 }
 

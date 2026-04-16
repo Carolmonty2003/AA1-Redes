@@ -141,6 +141,7 @@
     <ClCompile Include="GameScene.cpp" />
     <ClCompile Include="InputField.cpp" />
     <ClCompile Include="LobbyScene.cpp" />
+    <ClCompile Include="LoginScene.cpp" />
     <ClCompile Include="NetworkManager.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="ProtocolData.cpp" />
@@ -158,8 +159,8 @@
     <ClInclude Include="GameScene.h" />
     <ClInclude Include="InputField.h" />
     <ClInclude Include="LobbyScene.h" />
+    <ClInclude Include="LoginScene.h" />
     <ClInclude Include="NetworkManager.h" />
-    <ClInclude Include="PacketType.h" />
     <ClInclude Include="PacketTypes.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="ProtocolData.h" />

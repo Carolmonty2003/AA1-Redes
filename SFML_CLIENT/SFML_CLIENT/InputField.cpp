@@ -1,5 +1,6 @@
 #include "InputField.h"
-InputField::InputField(float x, float y, float w, float h, sf::Font& font) : text(font)
+
+InputField::InputField(float x, float y, float w, float h, sf::Font& font): text(font), selected(false)
 {
     rect.setPosition({ x, y });
     rect.setSize({ w, h });
@@ -8,7 +9,7 @@ InputField::InputField(float x, float y, float w, float h, sf::Font& font) : tex
     text.setFillColor(sf::Color::Black);
 }
 
-void InputField::handleEvent(const sf::Event& event, const sf::RenderWindow& window)
+void InputField::handleEvent(const sf::Event& event)
 {
     if (const auto* mouseEvent = event.getIf<sf::Event::MouseButtonPressed>()) {
         if (rect.getGlobalBounds().contains(sf::Vector2f(static_cast<float>(mouseEvent->position.x), static_cast<float>(mouseEvent->position.y))))

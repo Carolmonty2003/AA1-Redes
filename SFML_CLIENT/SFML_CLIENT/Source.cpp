@@ -3,11 +3,25 @@
 #include <iostream>
 #include <string>
 #include "NetworkManager.h"
+#include "SceneManager.h"
+#include "GameScene.h"
+#include "LobbyScene.h"
+#include "LoginScene.h"
 
 int main()
 {
     sf::RenderWindow window(sf::VideoMode({ 800, 600 }), "Conecta3 Cliente");
     window.setFramerateLimit(60);
+
+    LoginScene* loginScene = new LoginScene();
+    GameScene* gameScene = new GameScene();
+    LobbyScene* lobbyScene = new LobbyScene();
+
+
+    SM.AddScene("LoginScene", loginScene);
+    SM.AddScene("GameScene", gameScene);
+    SM.AddScene("LobbyScene", lobbyScene);
+    SM.InitFirstScene("LoginScene");
 
     if (!NM.ConnectToServer())
     {
@@ -22,6 +36,7 @@ int main()
     NM.GetClientState().nickname = nickname;
     NM.GetClientState().playerId = 1;
 
+    sf::Clock dtClock;
     while (true)
     {
         NM.ReceiveData();
@@ -60,6 +75,17 @@ int main()
         }
 
         NM.ReceiveData();
+
+
+        float dt = dtClock.restart().asSeconds();
+
+        SM.UpdateCurrentScene(dt);
+        window.clear(sf::Color(30, 30, 30));
+
+        if (SM.GetCurrentScene())
+            SM.GetCurrentScene()->Render(window);
+
+        window.display();
     }
 
     NM.CloseConnection();

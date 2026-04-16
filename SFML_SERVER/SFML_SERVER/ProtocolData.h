@@ -3,17 +3,10 @@
 #include <SFML/Network.hpp>
 #include <string>
 #include <vector>
-#include "PacketType.h"
+#include "PacketTypes.h"
 
 
-// Lectura del tipo de paquete
-inline sf::Packet& operator>>(sf::Packet& packet, PacketType& type)
-{
-    int rawType = 0;
-    packet >> rawType;
-    type = static_cast<PacketType>(rawType);
-    return packet;
-}
+
 
 // Datos de Login
 struct LoginRequestData

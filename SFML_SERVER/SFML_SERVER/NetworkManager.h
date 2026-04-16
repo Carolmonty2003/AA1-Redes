@@ -6,7 +6,7 @@
 #include <string>
 #include "ConnectedClient.h"
 #include "RoomManager.h"
-#include "PacketType.h"
+#include "PacketTypes.h"
 #include "ProtocolData.h"
 
 class NetworkManager

@@ -6,7 +6,7 @@ class Button: public UIElement
 {
 public:
 	Button(float xPos, float yPos, float width, float height);
-	void handleEvent(const sf::Event& event, const sf::RenderWindow& window) override;
+	void handleEvent(const sf::Event& event);
 	void Draw(sf::RenderWindow& window) override;
 	std::function <void()> onClick;
 private:

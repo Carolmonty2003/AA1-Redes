@@ -13,7 +13,7 @@ void DatabaseConnector::ConnectDatabase()
 		std::cout << "Connection done" << std::endl;
 	}
 	catch (sql::SQLException e) {
-		std::cout << "Could nor connect. Error message: " << e.what() << std::endl;
+		std::cout << "Could not connect. Error message: " << e.what() << std::endl;
 	}
 }
 

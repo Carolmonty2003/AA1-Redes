@@ -146,7 +146,7 @@
     <ClInclude Include="ConnectedClient.h" />
     <ClInclude Include="DatabaseConnector.h" />
     <ClInclude Include="NetworkManager.h" />
-    <ClInclude Include="PacketType.h" />
+    <ClInclude Include="PacketTypes.h" />
     <ClInclude Include="ProtocolData.h" />
     <ClInclude Include="Room.h" />
     <ClInclude Include="RoomManager.h" />

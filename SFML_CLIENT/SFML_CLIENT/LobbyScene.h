@@ -3,6 +3,7 @@
 #include "NetworkManager.h"
 #include <iostream>
 #include <SFML/Graphics.hpp>
+#include "SceneManager.h"
 
 
 class LobbyScene : public Scene

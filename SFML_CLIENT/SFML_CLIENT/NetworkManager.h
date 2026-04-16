@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include "PacketType.h"
+#include "PacketTypes.h"
 #include "ProtocolData.h"
 #include "ClientState.h"
 
