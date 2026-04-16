@@ -75,13 +75,11 @@ public:
 
     void Render(sf::RenderWindow& window) override
     {
-        window.clear();
         closeButton->Draw(window); 
         usernameInputfield->Draw(window);
         passwordInputfield->Draw(window);
         loginButton->Draw(window);
         signinButton->Draw(window);
-        window.display();
     }
 
     void OnExit() override

@@ -25,7 +25,7 @@ int main()
 
     if (!NM.ConnectToServer())
     {
-        return -1;
+        //return -1;
     }
 
     std::string command;
@@ -37,8 +37,9 @@ int main()
     NM.GetClientState().playerId = 1;
 
     sf::Clock dtClock;
-    while (true)
+    while (window.isOpen())
     {
+        /*
         NM.ReceiveData();
 
         std::cout << "\nComando (create / join / state / exit): ";
@@ -73,11 +74,21 @@ int main()
         {
             break;
         }
-
-        NM.ReceiveData();
-
+        */
+        //NM.ReceiveData();
+        
 
         float dt = dtClock.restart().asSeconds();
+
+        while (const std::optional<sf::Event> event = window.pollEvent())
+        {
+            if (event->is<sf::Event::Closed>())
+                window.close();
+
+
+            if (SM.GetCurrentScene())
+                SM.GetCurrentScene()->HandleEvent(*event);
+        }
 
         SM.UpdateCurrentScene(dt);
         window.clear(sf::Color(30, 30, 30));
@@ -88,6 +99,6 @@ int main()
         window.display();
     }
 
-    NM.CloseConnection();
+    //NM.CloseConnection();
     return 0;
 }
