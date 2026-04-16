@@ -4,7 +4,74 @@
 NetworkManager::NetworkManager()
     : m_isConnected(false)
 {
-   // m_socket.setBlocking(false);
+}
+
+bool NetworkManager::ConnectToServer()
+{
+    return Connect(SERVER_IP, SERVER_PORT);
+}
+
+void NetworkManager::DisconnectFromServer()
+{
+    CloseConnection();
+}
+
+void NetworkManager::NetworkFetch()
+{
+    ReceiveData();
+}
+
+void NetworkManager::AddConnection(const std::string& ip, unsigned short port)
+{
+    auto newSocket = std::make_unique<sf::TcpSocket>();
+    auto address = sf::IpAddress::resolve(ip);
+    if (!address)
+    {
+        std::cerr << "[CLIENT] IP invalida: " << ip << std::endl;
+        return;
+    }
+
+    if (newSocket->connect(*address, port) == sf::Socket::Status::Done)
+    {
+        std::cout << "[CLIENT] Conectado al rival " << ip << ":" << port << std::endl;
+        newSocket->setBlocking(false);
+        m_gameConnections.push_back(std::move(newSocket));
+    }
+    else
+    {
+        std::cerr << "[CLIENT] Error al conectar con el rival " << ip << ":" << port << std::endl;
+    }
+}
+
+void NetworkManager::SendToAllConnections(sf::Packet& packet)
+{
+    for (auto& sock : m_gameConnections)
+    {
+        if (sock->send(packet) != sf::Socket::Status::Done)
+        {
+            std::cerr << "[CLIENT] Error al enviar paquete P2P." << std::endl;
+        }
+    }
+}
+
+const std::vector<std::unique_ptr<sf::TcpSocket>>& NetworkManager::GetConnections() const
+{
+    return m_gameConnections;
+}
+
+std::vector<std::unique_ptr<sf::TcpSocket>>& NetworkManager::GetConnections()
+{
+    return m_gameConnections;
+}
+
+void NetworkManager::ClearConnections()
+{
+    for (auto& sock : m_gameConnections)
+    {
+        sock->disconnect();
+    }
+    m_gameConnections.clear();
+    std::cout << "[CLIENT] Conexiones P2P cerradas." << std::endl;
 }
 
 bool NetworkManager::Connect(const sf::IpAddress& serverIp, unsigned short serverPort)

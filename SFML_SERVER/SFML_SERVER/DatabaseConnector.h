@@ -18,8 +18,11 @@ class DatabaseConnector
 {
 public:
 	DatabaseConnector();
+private:
 	sql::Connection* con;
 	sql::Driver* driver;
+
+public:
 	void ConnectDatabase();
 	void DisconnectDatabase();
 

@@ -1,15 +1,15 @@
+#include <SFML/Network.hpp>
+#include <SFML/Graphics.hpp>
 #include <iostream>
 #include <string>
 #include "NetworkManager.h"
 
-constexpr unsigned short SERVER_PORT = 55000;
-const sf::IpAddress SERVER_IP = sf::IpAddress(127, 0, 0, 1);
-
 int main()
 {
-    NetworkManager networkManager;
+    sf::RenderWindow window(sf::VideoMode({ 800, 600 }), "Conecta3 Cliente");
+    window.setFramerateLimit(60);
 
-    if (!networkManager.Connect(SERVER_IP, SERVER_PORT))
+    if (!NM.ConnectToServer())
     {
         return -1;
     }
@@ -19,12 +19,12 @@ int main()
     std::string nickname = "Edgar";
     unsigned short gamePort = 56000;
 
-    networkManager.GetClientState().nickname = nickname;
-    networkManager.GetClientState().playerId = 1;
+    NM.GetClientState().nickname = nickname;
+    NM.GetClientState().playerId = 1;
 
     while (true)
     {
-        networkManager.ReceiveData();
+        NM.ReceiveData();
 
         std::cout << "\nComando (create / join / state / exit): ";
         std::cin >> command;
@@ -33,17 +33,17 @@ int main()
         {
             std::cout << "RoomId: ";
             std::cin >> roomId;
-            networkManager.SendCreateRoomRequest(roomId, nickname, gamePort);
+            NM.SendCreateRoomRequest(roomId, nickname, gamePort);
         }
         else if (command == "join")
         {
             std::cout << "RoomId: ";
             std::cin >> roomId;
-            networkManager.SendJoinRoomRequest(roomId, nickname, gamePort);
+            NM.SendJoinRoomRequest(roomId, nickname, gamePort);
         }
         else if (command == "state")
         {
-            const ClientState& state = networkManager.GetClientState();
+            const ClientState& state = NM.GetClientState();
 
             std::cout << "\n----- CLIENT STATE -----" << std::endl;
             std::cout << "playerId: " << state.playerId << std::endl;
@@ -59,9 +59,9 @@ int main()
             break;
         }
 
-        networkManager.ReceiveData();
+        NM.ReceiveData();
     }
 
-    networkManager.CloseConnection();
+    NM.CloseConnection();
     return 0;
 }
