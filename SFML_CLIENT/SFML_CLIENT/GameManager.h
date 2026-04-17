@@ -33,7 +33,7 @@ private:
     void BroadcastMove(int gx, int gy, int playerID);
 
     
-    void ReceiveNetworkMoves();
+    
 
    
     void HandlePeerDisconnection(sf::TcpSocket* socket);
@@ -59,6 +59,7 @@ public:
  
     bool TryPlacePieceGrid(int gx, int gy, int playerIndex);
 
+    void ReceiveNetworkMoves();
   
     bool CheckWin(int gx, int gy, int playerID);
 
