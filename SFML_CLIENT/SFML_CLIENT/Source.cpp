@@ -10,14 +10,11 @@
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode({ 800, 600 }), "Conecta3 Cliente");
-    window.setFramerateLimit(60);
-
     LoginScene* loginScene = new LoginScene();
     GameScene* gameScene = new GameScene();
     LobbyScene* lobbyScene = new LobbyScene();
-
-
+    SM.window = sf::RenderWindow(sf::VideoMode({ 800, 600 }), "Conecta3 Cliente");
+    SM.window.setFramerateLimit(60);
     SM.AddScene("LoginScene", loginScene);
     SM.AddScene("GameScene", gameScene);
     SM.AddScene("LobbyScene", lobbyScene);
@@ -37,7 +34,7 @@ int main()
     NM.GetClientState().playerId = 1;
 
     sf::Clock dtClock;
-    while (window.isOpen())
+    while (SM.window.isOpen())
     {
         /*
         NM.ReceiveData();
@@ -80,10 +77,10 @@ int main()
 
         float dt = dtClock.restart().asSeconds();
 
-        while (const std::optional<sf::Event> event = window.pollEvent())
+        while (const std::optional<sf::Event> event = SM.window.pollEvent())
         {
             if (event->is<sf::Event::Closed>())
-                window.close();
+                SM.window.close();
 
 
             if (SM.GetCurrentScene())
@@ -91,12 +88,12 @@ int main()
         }
 
         SM.UpdateCurrentScene(dt);
-        window.clear(sf::Color(30, 30, 30));
+        SM.window.clear(sf::Color(30, 30, 30));
 
         if (SM.GetCurrentScene())
-            SM.GetCurrentScene()->Render(window);
+            SM.GetCurrentScene()->Render(SM.window);
 
-        window.display();
+        SM.window.display();
     }
 
     //NM.CloseConnection();

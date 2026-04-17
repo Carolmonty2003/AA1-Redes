@@ -2,6 +2,7 @@
 #include "Scene.h"
 #include "NetworkManager.h"
 #include <iostream>
+#include <functional>
 #include <SFML/Graphics.hpp>
 #include "SceneManager.h"
 #include <string>
@@ -29,7 +30,15 @@ public:
         loginButton = new Button(350, 280, 100, 25);
         signinButton= new Button(350, 310, 100, 25);
         closeButton = new Button(800 - 64, 0, 64, 64);
-
+        closeButton->onClick = [](){
+            SM.window.close();
+        };
+        signinButton->onClick = []() {
+            SM.SetNextScene("LobbyScene");
+        };
+        loginButton->onClick = []() {
+            SM.SetNextScene("LobbyScene");
+        };
     }
 
     void OnEnter() override

@@ -1,7 +1,9 @@
 #pragma once
 #include <unordered_map>
 #include <string>
+#include <SFML/Graphics.hpp>
 #include "Scene.h"
+
 
 #define SM SceneManager::Instance()
 
@@ -11,8 +13,9 @@ private:
 	std::unordered_map<std::string, Scene*> scenes;
 	Scene* currentScene = nullptr;
 	std::string nextScene = "";
+	
 public:
-
+	sf::RenderWindow window;
 	inline static SceneManager& Instance() {
 		static SceneManager sm;
 		return sm;
