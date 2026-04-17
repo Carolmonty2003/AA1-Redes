@@ -8,11 +8,19 @@
 #include "RoomManager.h"
 #include "PacketTypes.h"
 #include "ProtocolData.h"
+#define NM NetworkManager::Instance()
 
 class NetworkManager
 {
 public:
     NetworkManager();
+    NetworkManager(const NetworkManager&) = delete;
+    NetworkManager& operator=(const NetworkManager&) = delete;
+    inline static NetworkManager& Instance()
+    {
+        static NetworkManager nm;
+        return nm;
+    }
 
     bool Start(unsigned short listenPort);
     void Update();
@@ -23,11 +31,16 @@ private:
 
     void ProcessPacket(ConnectedClient& client, sf::Packet& packet);
 
+    void HandleRegisterRequest(ConnectedClient& client, sf::Packet& packet);
+    void HandleLoginRequest(ConnectedClient& client, sf::Packet& packet);
+
     void HandleCreateRoomRequest(ConnectedClient& client, sf::Packet& packet);
     void HandleJoinRoomRequest(ConnectedClient& client, sf::Packet& packet);
 
     void SendCreateRoomResponse(ConnectedClient& client, bool success, const std::string& roomId, const std::string& message);
     void SendJoinRoomResponse(ConnectedClient& client, bool success, const std::string& roomId, const std::string& message);
+    void SendLoginResponse(ConnectedClient& client, const LoginResponseData& data);
+    void SendRegisterResponse(ConnectedClient& client, const RegisterResponseData& data);
     void SendErrorMessage(ConnectedClient& client, const std::string& message);
 
     void BroadcastRoomStatus(const std::string& roomId);
@@ -44,7 +57,6 @@ private:
     sf::TcpListener m_listener;
     bool m_isRunning;
     int m_nextPlayerId;
-
     std::vector<std::unique_ptr<sf::TcpSocket>> m_sockets;
     std::vector<ConnectedClient> m_clients;
     RoomManager m_roomManager;

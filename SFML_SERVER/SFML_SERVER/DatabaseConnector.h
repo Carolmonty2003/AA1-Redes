@@ -11,25 +11,34 @@
 #include <cppconn/driver.h>
 #include <cppconn/exception.h>
 #include <cppconn/prepared_statement.h>
+#include "PacketTypes.h"
+#include "ProtocolData.h"
 #include <cppconn/resultset.h>
 
+#define DC DatabaseConnector::Instance()
 
 class DatabaseConnector
 {
-public:
-	DatabaseConnector();
 private:
 	sql::Connection* con;
 	sql::Driver* driver;
 
 public:
+	DatabaseConnector();
+	DatabaseConnector(const DatabaseConnector&) = delete;
+	DatabaseConnector& operator=(const DatabaseConnector&) = delete;
+	inline static DatabaseConnector& Instance()
+	{
+		static DatabaseConnector nm;
+		return nm;
+	}
 	void ConnectDatabase();
 	void DisconnectDatabase();
 
 	//Get database data funcs
 	void GetAllPlayers();
-	bool LoginPlayer();
-	void AddPlayer();
+	bool LoginPlayer(LoginRequestData lrd);
+	void AddPlayer(RegisterRequestData rrd);
 	void DeletePlayer();
 	void PrintRanking();
 };

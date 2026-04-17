@@ -42,6 +42,9 @@ public:
     const std::vector<std::unique_ptr<sf::TcpSocket>>& GetConnections() const;
     std::vector<std::unique_ptr<sf::TcpSocket>>& GetConnections();
     void ClearConnections();
+    void SendToServer(sf::Packet& packet);
+    void SendLoginRequest(const std::string& username, const std::string& password);
+    void SendRegisterRequest(const std::string& username, const std::string& password);
 
 private:
     NetworkManager();
@@ -49,12 +52,13 @@ private:
     NetworkManager& operator=(const NetworkManager&) = delete;
 
     void ProcessPacket(sf::Packet& packet);
-
     void HandleCreateRoomResponse(sf::Packet& packet);
     void HandleJoinRoomResponse(sf::Packet& packet);
     void HandleRoomStatusUpdate(sf::Packet& packet);
     void HandleStartGame(sf::Packet& packet);
     void HandleErrorMessage(sf::Packet& packet);
+    void HandleLoginResponse(sf::Packet& packet);
+    void HandleRegisterResponse(sf::Packet& packet);
 
     sf::TcpSocket m_socket;
     bool m_isConnected;

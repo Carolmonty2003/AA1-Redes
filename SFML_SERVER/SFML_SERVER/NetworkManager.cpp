@@ -1,4 +1,5 @@
 #include "NetworkManager.h"
+#include "DatabaseConnector.h"
 #include <iostream>
 
 NetworkManager::NetworkManager()
@@ -97,6 +98,12 @@ void NetworkManager::ProcessPacket(ConnectedClient& client, sf::Packet& packet)
 
     switch (packetType)
     {
+    case PacketType::REGISTER_REQUEST:
+        HandleRegisterRequest(client, packet);
+        break;
+    case PacketType::LOGIN_REQUEST:
+        HandleLoginRequest(client, packet);
+        break;
     case PacketType::CREATE_ROOM_REQUEST:
         HandleCreateRoomRequest(client, packet);
         break;
@@ -111,6 +118,34 @@ void NetworkManager::ProcessPacket(ConnectedClient& client, sf::Packet& packet)
             << std::endl;
         break;
     }
+}
+
+void NetworkManager::HandleRegisterRequest(ConnectedClient& client, sf::Packet& packet)
+{
+    RegisterRequestData registerRequestData;
+    packet >> registerRequestData;
+    DC.AddPlayer(registerRequestData);
+
+    RegisterResponseData response;
+    response.success = true;
+    response.message = "Register succeed";
+    SendRegisterResponse(client, response);
+}
+
+void NetworkManager::HandleLoginRequest(ConnectedClient& client, sf::Packet& packet)
+{
+    LoginRequestData loginRequestData;
+    packet >> loginRequestData;
+    bool success = DC.LoginPlayer(loginRequestData);
+    LoginResponseData response;
+    response.success = success;
+    if (success) {
+        client.username = loginRequestData.username;
+        response.message = "Login done";
+    }
+    else
+        response.message = "Login failed";
+    SendLoginResponse(client, response);
 }
 
 void NetworkManager::HandleCreateRoomRequest(ConnectedClient& client, sf::Packet& packet)
@@ -219,6 +254,22 @@ void NetworkManager::SendJoinRoomResponse(ConnectedClient& client, bool success,
     packet << static_cast<int>(PacketType::JOIN_ROOM_RESPONSE);
     packet << responseData;
 
+    client.socket->send(packet);
+}
+
+void NetworkManager::SendLoginResponse(ConnectedClient& client, const LoginResponseData& data)
+{
+    sf::Packet packet;
+    packet << static_cast<int>(PacketType::LOGIN_RESPONSE);
+    packet << data;
+    client.socket->send(packet);
+}
+
+void NetworkManager::SendRegisterResponse(ConnectedClient& client, const RegisterResponseData& data)
+{
+    sf::Packet packet;
+    packet << static_cast<int>(PacketType::REGISTER_RESPONSE);
+    packet << data;
     client.socket->send(packet);
 }
 
@@ -426,3 +477,4 @@ void NetworkManager::PrintConnectedClients() const
             << "\n";
     }
 }
+

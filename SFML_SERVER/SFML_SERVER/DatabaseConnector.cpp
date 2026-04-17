@@ -36,11 +36,11 @@ void DatabaseConnector::GetAllPlayers()
 	delete pstmt;
 }
 
-bool DatabaseConnector::LoginPlayer()
+bool DatabaseConnector::LoginPlayer(LoginRequestData lrd)
 {
 	sql::PreparedStatement* pstmt = con->prepareStatement("CALL LoginPlayer( ?, ? )");
-	pstmt->setString(1, "Radev");
-	pstmt->setString(2, "RichardPringado");
+	pstmt->setString(1, lrd.username);
+	pstmt->setString(2, lrd.password);
 	sql::ResultSet* res = pstmt->executeQuery();
 	bool savedResult = res->next();
 	delete res;
@@ -48,11 +48,11 @@ bool DatabaseConnector::LoginPlayer()
 	return savedResult;
 }
 
-void DatabaseConnector::AddPlayer()
+void  DatabaseConnector::AddPlayer(RegisterRequestData rrd)
 {
 	sql::PreparedStatement* pstmt = con->prepareStatement("CALL AddPlayer( ?, ? )");
-	pstmt->setString(1, "JuanCuesta");
-	pstmt->setString(2, "JuntaUrgente");
+	pstmt->setString(1, rrd.username);
+	pstmt->setString(2, rrd.password);
 	pstmt->execute();
 	delete pstmt;
 }

@@ -211,6 +211,14 @@ void NetworkManager::ProcessPacket(sf::Packet& packet)
 
     switch (packetType)
     {
+    case PacketType::LOGIN_RESPONSE:
+        HandleLoginResponse(packet);
+        break;
+    
+    case PacketType::REGISTER_RESPONSE:
+        HandleRegisterResponse(packet);
+        break;
+
     case PacketType::CREATE_ROOM_RESPONSE:
         HandleCreateRoomResponse(packet);
         break;
@@ -235,6 +243,37 @@ void NetworkManager::ProcessPacket(sf::Packet& packet)
         std::cout << "[CLIENT] Paquete recibido no gestionado." << std::endl;
         break;
     }
+}
+
+void NetworkManager::SendToServer(sf::Packet& packet)
+{
+    if (m_socket.send(packet) == sf::Socket::Status::Done) {
+
+    }
+}
+
+void NetworkManager::SendLoginRequest(const std::string& username, const std::string& password)
+{
+    LoginRequestData loginRequestData;
+    loginRequestData.username = username;
+    loginRequestData.password = password;
+    //std::cout << "SendingLogin";
+    sf::Packet packet;
+    packet << static_cast<int>(PacketType::LOGIN_REQUEST);
+    packet << loginRequestData;
+    m_socket.send(packet);
+}
+
+void NetworkManager::SendRegisterRequest(const std::string& username, const std::string& password)
+{
+    RegisterRequestData registerRequestData;
+    registerRequestData.username = username;
+    registerRequestData.password = password;
+    //std::cout << "SendingRegister";
+    sf::Packet packet;
+    packet << static_cast<int>(PacketType::REGISTER_REQUEST);
+    packet << registerRequestData;
+    m_socket.send(packet);
 }
 
 void NetworkManager::HandleCreateRoomResponse(sf::Packet& packet)
@@ -334,4 +373,21 @@ void NetworkManager::HandleErrorMessage(sf::Packet& packet)
     std::cout << "[CLIENT] ERROR_MESSAGE -> "
         << errorData.message
         << std::endl;
+}
+
+void NetworkManager::HandleLoginResponse(sf::Packet& packet)
+{
+    LoginResponseData loginResponseData;
+    packet >> loginResponseData;
+    if (loginResponseData.success)
+    {
+        m_clientState.playerId = loginResponseData.playerId;
+        m_clientState.nickname = loginResponseData.username;
+    }
+}
+
+void NetworkManager::HandleRegisterResponse(sf::Packet& packet)
+{
+    RegisterResponseData registerResponseData;
+    packet >> registerResponseData;
 }
