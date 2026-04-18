@@ -22,10 +22,7 @@ public:
 	
 	void OnEnter() override
 	{
-		std::cout << "Entrando al Lobby (Bootstrap Server)..." << std::endl;
-
-        NM.ConnectToServer();
-
+		std::cout << "Entrando al LobbyScene..." << std::endl;
 	}
 
 	void HandleEvent(const sf::Event& event) override

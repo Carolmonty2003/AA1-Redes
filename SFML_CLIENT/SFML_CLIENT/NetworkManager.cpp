@@ -8,6 +8,11 @@ NetworkManager::NetworkManager()
 
 bool NetworkManager::ConnectToServer()
 {
+    if (m_isConnected)
+    {
+        std::cout << "Ya conectado al servidor" << std::endl;
+        return true;
+    }
     return Connect(SERVER_IP, SERVER_PORT);
 }
 
