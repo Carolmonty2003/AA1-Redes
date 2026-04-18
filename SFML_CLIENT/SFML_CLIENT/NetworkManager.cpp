@@ -123,7 +123,7 @@ void NetworkManager::SendCreateRoomRequest(const std::string& roomId, const std:
     requestData.username = nickname;
     requestData.gamePort = gamePort;
 
-    packet << static_cast<int>(PacketType::CREATE_ROOM_REQUEST);
+    packet << static_cast<short>(PacketType::CREATE_ROOM_REQUEST);
     packet << requestData;
 
     if (m_socket.send(packet) == sf::Socket::Status::Done)
@@ -151,7 +151,7 @@ void NetworkManager::SendJoinRoomRequest(const std::string& roomId, const std::s
     requestData.username = nickname;
     requestData.gamePort = gamePort;
 
-    packet << static_cast<int>(PacketType::JOIN_ROOM_REQUEST);
+    packet << static_cast<short>(PacketType::JOIN_ROOM_REQUEST);
     packet << requestData;
 
     if (m_socket.send(packet) == sf::Socket::Status::Done)
@@ -259,7 +259,7 @@ void NetworkManager::SendLoginRequest(const std::string& username, const std::st
     loginRequestData.password = password;
     //std::cout << "SendingLogin";
     sf::Packet packet;
-    packet << static_cast<int>(PacketType::LOGIN_REQUEST);
+    packet << static_cast<short>(PacketType::LOGIN_REQUEST);
     packet << loginRequestData;
     m_socket.send(packet);
 }
@@ -271,7 +271,7 @@ void NetworkManager::SendRegisterRequest(const std::string& username, const std:
     registerRequestData.password = password;
     //std::cout << "SendingRegister";
     sf::Packet packet;
-    packet << static_cast<int>(PacketType::REGISTER_REQUEST);
+    packet << static_cast<short>(PacketType::REGISTER_REQUEST);
     packet << registerRequestData;
     m_socket.send(packet);
 }

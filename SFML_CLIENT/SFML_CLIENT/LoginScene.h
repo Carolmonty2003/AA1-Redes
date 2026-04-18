@@ -50,8 +50,6 @@ public:
     void OnEnter() override
     {
         std::cout << "Entrando al Lobby (Bootstrap Server)..." << std::endl;
-        NM.ConnectToServer();
-
     }
 
     void HandleEvent(const sf::Event& event) override
@@ -61,32 +59,13 @@ public:
         passwordInputfield->handleEvent(event);
         loginButton->handleEvent(event);
         signinButton->handleEvent(event);
-        if (event.is<sf::Event::KeyPressed>())
-        {
-            const sf::Event::KeyPressed* kpInfo = event.getIf<sf::Event::KeyPressed>();
-            if (kpInfo && kpInfo->code == sf::Keyboard::Key::Space)
-            {
-                // Go back to the game scene to start another match
-                SM.SetNextScene("GameScene");
-            }
-
-            if (kpInfo && kpInfo->code == sf::Keyboard::Key::M)
-            {
-                NM.DisconnectFromServer();
-            }
-
-            if (kpInfo && kpInfo->code == sf::Keyboard::Key::N)
-            {
-                NM.ConnectToServer();
-            }
-        }
     }
 
     void Update(float dt) override
     {
         NM.NetworkFetch();
-      //  if (NM.GetClientState().IsLoggedIn())
-      //      SM.SetNextScene("LobbyScene");
+        if (NM.GetClientState().IsLoggedIn())
+            SM.SetNextScene("LobbyScene");
     }
 
     void Render(sf::RenderWindow& window) override

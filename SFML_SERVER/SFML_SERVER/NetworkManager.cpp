@@ -95,7 +95,7 @@ void NetworkManager::ProcessPacket(ConnectedClient& client, sf::Packet& packet)
 {
     PacketType packetType = PacketType::NONE;
     packet >> packetType;
-
+    std::cout << "[SERVER] Processing package: " << packetType << std::endl << " from: " << client.username << std::endl;
     switch (packetType)
     {
     case PacketType::REGISTER_REQUEST:
@@ -141,6 +141,8 @@ void NetworkManager::HandleLoginRequest(ConnectedClient& client, sf::Packet& pac
     response.success = success;
     if (success) {
         client.username = loginRequestData.username;
+        response.username = loginRequestData.username;
+        response.playerId = client.playerId;
         response.message = "Login done";
     }
     else
@@ -232,7 +234,7 @@ void NetworkManager::SendCreateRoomResponse(ConnectedClient& client, bool succes
     responseData.roomId = roomId;
     responseData.message = message;
 
-    packet << static_cast<int>(PacketType::CREATE_ROOM_RESPONSE);
+    packet << static_cast<short>(PacketType::CREATE_ROOM_RESPONSE);
     packet << responseData;
 
     client.socket->send(packet);
@@ -251,7 +253,7 @@ void NetworkManager::SendJoinRoomResponse(ConnectedClient& client, bool success,
     responseData.roomId = roomId;
     responseData.message = message;
 
-    packet << static_cast<int>(PacketType::JOIN_ROOM_RESPONSE);
+    packet << static_cast<short>(PacketType::JOIN_ROOM_RESPONSE);
     packet << responseData;
 
     client.socket->send(packet);
@@ -260,7 +262,7 @@ void NetworkManager::SendJoinRoomResponse(ConnectedClient& client, bool success,
 void NetworkManager::SendLoginResponse(ConnectedClient& client, const LoginResponseData& data)
 {
     sf::Packet packet;
-    packet << static_cast<int>(PacketType::LOGIN_RESPONSE);
+    packet << static_cast<short>(PacketType::LOGIN_RESPONSE);
     packet << data;
     client.socket->send(packet);
 }
@@ -268,7 +270,7 @@ void NetworkManager::SendLoginResponse(ConnectedClient& client, const LoginRespo
 void NetworkManager::SendRegisterResponse(ConnectedClient& client, const RegisterResponseData& data)
 {
     sf::Packet packet;
-    packet << static_cast<int>(PacketType::REGISTER_RESPONSE);
+    packet << static_cast<short>(PacketType::REGISTER_RESPONSE);
     packet << data;
     client.socket->send(packet);
 }
@@ -284,7 +286,7 @@ void NetworkManager::SendErrorMessage(ConnectedClient& client, const std::string
     ErrorMessageData errorData;
     errorData.message = message;
 
-    packet << static_cast<int>(PacketType::ERROR_MESSAGE);
+    packet << static_cast<short>(PacketType::ERROR_MESSAGE);
     packet << errorData;
 
     client.socket->send(packet);
@@ -301,7 +303,7 @@ void NetworkManager::BroadcastRoomStatus(const std::string& roomId)
 
     RoomStatusUpdateData roomData;
     roomData.roomId = room->roomId;
-    roomData.currentPlayers = static_cast<int>(room->playerIds.size());
+    roomData.currentPlayers = static_cast<short>(room->playerIds.size());
     roomData.maxPlayers = room->maxPlayers;
 
     roomData.players.clear();
@@ -333,7 +335,7 @@ void NetworkManager::BroadcastRoomStatus(const std::string& roomId)
         }
 
         sf::Packet packet;
-        packet << static_cast<int>(PacketType::ROOM_STATUS_UPDATE);
+        packet << static_cast<short>(PacketType::ROOM_STATUS_UPDATE);
         packet << roomData;
         roomClient->socket->send(packet);
     }
@@ -348,7 +350,7 @@ void NetworkManager::TryStartGame(const std::string& roomId)
         return;
     }
 
-    if (static_cast<int>(room->playerIds.size()) < room->maxPlayers)
+    if (static_cast<short>(room->playerIds.size()) < room->maxPlayers)
     {
         return;
     }
@@ -357,7 +359,7 @@ void NetworkManager::TryStartGame(const std::string& roomId)
 
     StartGameData startData;
     startData.roomId = room->roomId;
-    startData.playerCount = static_cast<int>(room->playerIds.size());
+    startData.playerCount = static_cast<short>(room->playerIds.size());
 
     for (int playerId : room->playerIds)
     {
@@ -386,7 +388,7 @@ void NetworkManager::TryStartGame(const std::string& roomId)
         }
 
         sf::Packet packet;
-        packet << static_cast<int>(PacketType::START_GAME);
+        packet << static_cast<short>(PacketType::START_GAME);
         packet << startData;
         roomClient->socket->send(packet);
     }
