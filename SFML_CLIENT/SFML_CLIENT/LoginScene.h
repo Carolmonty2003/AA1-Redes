@@ -49,7 +49,8 @@ public:
 
     void OnEnter() override
     {
-        std::cout << "Entrando al Lobby (Bootstrap Server)..." << std::endl;
+        std::cout << "Entrando a la LoginScene..." << std::endl;
+        
     }
 
     void HandleEvent(const sf::Event& event) override
