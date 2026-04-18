@@ -29,30 +29,34 @@ public:
         std::cout << "Entrando a GameScene..." << std::endl;
         auto& state = NM.GetClientState();
         std::vector<Player> gamePlayers;
-        bool amIHost = false;
-        
-        for (const auto& lobbyPlayer : state.roomPlayers)
+        int myIndex = -1;
+
+        for (int i = 0; i < (int)state.roomPlayers.size(); ++i)
         {
+            const auto& lp = state.roomPlayers[i];
             Player p;
-            p.id = lobbyPlayer.playerId;
-            p.nickName = lobbyPlayer.username;
+            p.id = lp.playerId;
+            p.nickName = lp.username;
             gamePlayers.push_back(p);
 
-            if (lobbyPlayer.playerId == state.playerId) {
-                amIHost = lobbyPlayer.isHost;
-                if (amIHost) {
-                    NM.StartP2PListener(lobbyPlayer.gamePort);
-                }
+            if (lp.playerId == state.playerId) {
+                myIndex = i;
             }
         }
-        
+
         SetupGame(gamePlayers, state.playerId);
 
-        if (!amIHost) {
-            for (const auto& lobbyPlayer : state.roomPlayers) {
-                if (lobbyPlayer.isHost) {
-                    NM.AddConnection(lobbyPlayer.ip, lobbyPlayer.gamePort);
-                }
+        
+        NM.StartP2PListener(state.roomPlayers[myIndex].gamePort);
+
+        // Conectar a los jugadores que estan ANTES en la lista
+        for (int i = 0; i < myIndex; ++i)
+        {
+            const auto& lp = state.roomPlayers[i];
+            for (int intento = 0; intento < 20; ++intento) {
+                NM.AddConnection(lp.ip, lp.gamePort);
+                if ((int)NM.GetConnections().size() > i) break;
+                sf::sleep(sf::milliseconds(200));
             }
         }
     }
