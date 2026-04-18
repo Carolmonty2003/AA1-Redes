@@ -4,6 +4,8 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #include "SceneManager.h"
+#include <cstdlib>
+#include <ctime>
 
 
 class LobbyScene : public Scene
@@ -23,6 +25,12 @@ public:
 	void OnEnter() override
 	{
 		std::cout << "Entrando al LobbyScene..." << std::endl;
+        srand(time(NULL));
+        unsigned short myPort = 50000 + (rand() % 10000);
+        NM.GetClientState().myGamePort = myPort;
+
+        // Auto Matchmaking: Intentamos unirnos a "test_room"
+        NM.SendJoinRoomRequest("test_room", NM.GetClientState().nickname, myPort);
 	}
 
 	void HandleEvent(const sf::Event& event) override
