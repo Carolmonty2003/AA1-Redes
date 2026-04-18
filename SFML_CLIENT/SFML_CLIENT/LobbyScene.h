@@ -51,6 +51,10 @@ public:
 	void Update(float dt) override
 	{
         NM.NetworkFetch();
+        if (NM.GetClientState().hasGameStarted)
+        {
+            SM.SetNextScene("GameScene");
+        }
 	}
 
 	void Render(sf::RenderWindow& window) override

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <SFML/Network.hpp>
+#include "NetworkManager.h"
 
 class GameScene : public Scene
 {
@@ -26,7 +27,34 @@ public:
     void OnEnter() override
     {
         std::cout << "Entrando a GameScene..." << std::endl;
-  
+        auto& state = NM.GetClientState();
+        std::vector<Player> gamePlayers;
+        bool amIHost = false;
+        
+        for (const auto& lobbyPlayer : state.roomPlayers)
+        {
+            Player p;
+            p.id = lobbyPlayer.playerId;
+            p.nickName = lobbyPlayer.username;
+            gamePlayers.push_back(p);
+
+            if (lobbyPlayer.playerId == state.playerId) {
+                amIHost = lobbyPlayer.isHost;
+                if (amIHost) {
+                    NM.StartP2PListener(lobbyPlayer.gamePort);
+                }
+            }
+        }
+        
+        SetupGame(gamePlayers, state.playerId);
+
+        if (!amIHost) {
+            for (const auto& lobbyPlayer : state.roomPlayers) {
+                if (lobbyPlayer.isHost) {
+                    NM.AddConnection(lobbyPlayer.ip, lobbyPlayer.gamePort);
+                }
+            }
+        }
     }
 
     void HandleEvent(const sf::Event& event) override
