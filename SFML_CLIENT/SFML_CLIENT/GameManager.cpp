@@ -296,7 +296,7 @@ void GameManager::CheckGameOver()
             if (grid[x][y] == 0) boardFull = false;
 
     
-    if (spectators >= 3 || boardFull)
+    if (spectators >= (int)players.size() - 1 || boardFull)
     {
         std::cout << "=== GAME OVER ===" << std::endl;
         isGameOver = true;

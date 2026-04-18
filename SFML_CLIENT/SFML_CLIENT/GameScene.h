@@ -74,6 +74,7 @@ public:
 
     void Update(float dt) override
     {
+        NM.NetworkFetch(); 
         gameManager.ReceiveNetworkMoves();
         gameManager.Update(dt);
     }
