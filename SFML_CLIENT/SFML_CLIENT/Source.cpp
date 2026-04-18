@@ -27,11 +27,11 @@ int main()
 
     std::string command;
     std::string roomId;
-    std::string nickname = "Edgar";
+   // std::string nickname = "Edgar";
     unsigned short gamePort = 56000;
 
-    NM.GetClientState().nickname = nickname;
-    NM.GetClientState().playerId = 1;
+    //NM.GetClientState().nickname = nickname;
+    //NM.GetClientState().playerId = 1;
 
     sf::Clock dtClock;
     while (SM.window.isOpen())

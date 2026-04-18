@@ -1,6 +1,7 @@
 #pragma once
 #include <unordered_map>
 #include <string>
+#include <iostream>
 #include <SFML/Graphics.hpp>
 #include "Scene.h"
 
@@ -60,9 +61,12 @@ public:
 
 	inline void UpdateCurrentScene(float dt) {
 		if (nextScene != "") {
-			if (currentScene) currentScene->OnExit();
+			if (currentScene) 
+				currentScene->OnExit();
+			std::cout << "Exiting from:  " << currentScene <<", netxt scene: " << scenes[nextScene] <<std::endl;
 			currentScene = scenes[nextScene];
-			if (currentScene) currentScene->OnEnter();
+			if (currentScene) 
+				currentScene->OnEnter();
 			nextScene = "";
 		}
 		if (currentScene) currentScene->Update(dt);

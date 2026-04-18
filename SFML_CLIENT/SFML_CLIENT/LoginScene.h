@@ -31,22 +31,25 @@ public:
         signinButton= new Button(350, 310, 100, 25);
         closeButton = new Button(800 - 64, 0, 64, 64);
         closeButton->onClick = [](){
+            
             SM.window.close();
         };
-        signinButton->onClick = []() {
-            SM.SetNextScene("LobbyScene");
+        signinButton->onClick = [this]() {
+            std::string user = usernameInputfield->getText();
+            std::string pass = passwordInputfield->getText();
+            NM.SendRegisterRequest(user, pass);
         };
-        loginButton->onClick = []() {
-            SM.SetNextScene("LobbyScene");
+        loginButton->onClick = [this]() {
+            PacketType pt = PacketType::LOGIN_REQUEST;
+            std::string user = usernameInputfield->getText();
+            std::string pass = passwordInputfield->getText();
+            NM.SendLoginRequest(user, pass);
         };
     }
 
     void OnEnter() override
     {
         std::cout << "Entrando al Lobby (Bootstrap Server)..." << std::endl;
-
-        //NM.ConnectToServer();
-
     }
 
     void HandleEvent(const sf::Event& event) override
@@ -56,30 +59,13 @@ public:
         passwordInputfield->handleEvent(event);
         loginButton->handleEvent(event);
         signinButton->handleEvent(event);
-        if (event.is<sf::Event::KeyPressed>())
-        {
-            const sf::Event::KeyPressed* kpInfo = event.getIf<sf::Event::KeyPressed>();
-            if (kpInfo && kpInfo->code == sf::Keyboard::Key::Space)
-            {
-                // Go back to the game scene to start another match
-                SM.SetNextScene("GameScene");
-            }
-
-            if (kpInfo && kpInfo->code == sf::Keyboard::Key::M)
-            {
-                NM.DisconnectFromServer();
-            }
-
-            if (kpInfo && kpInfo->code == sf::Keyboard::Key::N)
-            {
-                NM.ConnectToServer();
-            }
-        }
     }
 
     void Update(float dt) override
     {
         NM.NetworkFetch();
+        if (NM.GetClientState().IsLoggedIn())
+            SM.SetNextScene("LobbyScene");
     }
 
     void Render(sf::RenderWindow& window) override

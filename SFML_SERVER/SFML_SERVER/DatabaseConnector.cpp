@@ -1,7 +1,9 @@
 #include "DatabaseConnector.h"
+#include<iostream>
 
 DatabaseConnector::DatabaseConnector()
 {
+
 }
 
 void DatabaseConnector::ConnectDatabase()
@@ -36,25 +38,41 @@ void DatabaseConnector::GetAllPlayers()
 	delete pstmt;
 }
 
-bool DatabaseConnector::LoginPlayer()
+bool DatabaseConnector::LoginPlayer(LoginRequestData lrd)
 {
-	sql::PreparedStatement* pstmt = con->prepareStatement("CALL LoginPlayer( ?, ? )");
-	pstmt->setString(1, "Radev");
-	pstmt->setString(2, "RichardPringado");
-	sql::ResultSet* res = pstmt->executeQuery();
-	bool savedResult = res->next();
-	delete res;
-	delete pstmt;
-	return savedResult;
+	try{
+		sql::PreparedStatement* pstmt = con->prepareStatement("CALL LoginPlayer( ?, ? )");
+		pstmt->setString(1, lrd.username);
+		pstmt->setString(2, lrd.password);
+		pstmt->execute();
+		sql::ResultSet* res = pstmt->getResultSet();
+		bool savedResult = res->next();
+		if(savedResult)
+			std::cout << "[SERVER] " << lrd.username  << " login succeed" << std::endl;
+		else
+			std::cout << "[SERVER] " << lrd.username << " login failed" << std::endl;
+		delete res;
+		delete pstmt;
+		return savedResult;
+	}
+	catch (sql::SQLException& e) {
+		std::cout << "AddPlayer error: " << e.what() << std::endl;
+		return false;
+	}
 }
 
-void DatabaseConnector::AddPlayer()
+void  DatabaseConnector::AddPlayer(RegisterRequestData rrd)
 {
-	sql::PreparedStatement* pstmt = con->prepareStatement("CALL AddPlayer( ?, ? )");
-	pstmt->setString(1, "JuanCuesta");
-	pstmt->setString(2, "JuntaUrgente");
-	pstmt->execute();
-	delete pstmt;
+	try {
+		sql::PreparedStatement* pstmt = con->prepareStatement("CALL AddPlayer( ?, ? )");
+		pstmt->setString(1, rrd.username);
+		pstmt->setString(2, rrd.password);
+		pstmt->execute();
+		delete pstmt;
+	}
+	catch (sql::SQLException& e) {
+		std::cout << "AddPlayer error: " << e.what() << std::endl;
+	}
 }
 
 void DatabaseConnector::DeletePlayer()
