@@ -46,19 +46,24 @@ public:
 
         SetupGame(gamePlayers, state.playerId);
 
-        
+        // Iniciar listener P2P
         NM.StartP2PListener(state.roomPlayers[myIndex].gamePort);
 
-        // Conectar a los jugadores que estan ANTES en la lista
-        for (int i = 0; i < myIndex; ++i)
+        for (int i = 0; i < (int)state.roomPlayers.size(); ++i)
         {
+            if (i == myIndex) continue; // No conectar a ti mismo
+
             const auto& lp = state.roomPlayers[i];
-            for (int intento = 0; intento < 20; ++intento) {
+            std::cout << "[CLIENT] Intentando conectar a " << lp.username 
+                      << " (" << lp.ip << ":" << lp.gamePort << ")" << std::endl;
+            
+            for (int intento = 0; intento < 10; ++intento) {
                 NM.AddConnection(lp.ip, lp.gamePort);
-                if ((int)NM.GetConnections().size() > i) break;
-                sf::sleep(sf::milliseconds(200));
+                sf::sleep(sf::milliseconds(100));
             }
         }
+
+        std::cout << "[CLIENT] Conexiones establecidas: " << NM.GetConnections().size() << std::endl;
     }
 
     void HandleEvent(const sf::Event& event) override
