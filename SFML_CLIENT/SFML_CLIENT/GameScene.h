@@ -26,6 +26,7 @@ public:
     void OnEnter() override
     {
         std::cout << "Entrando a GameScene..." << std::endl;
+  
     }
 
     void HandleEvent(const sf::Event& event) override
@@ -45,6 +46,7 @@ public:
 
     void Update(float dt) override
     {
+        gameManager.ReceiveNetworkMoves();
         gameManager.Update(dt);
     }
 

@@ -63,6 +63,7 @@ private:
     sf::TcpSocket m_socket;
     bool m_isConnected;
     ClientState m_clientState;
+    sf::TcpListener* listener;
 
     std::vector<std::unique_ptr<sf::TcpSocket>> m_gameConnections;
 
