@@ -27,9 +27,12 @@ public:
         }
         usernameInputfield = new InputField(250, 220, 300, 25, font);
         passwordInputfield = new InputField (250, 250, 300, 25, font);
-        loginButton = new Button(350, 280, 100, 25);
-        signinButton= new Button(350, 310, 100, 25);
-        closeButton = new Button(800 - 64, 0, 64, 64);
+        loginButton = new Button(350, 280, 100, 25, font);
+        loginButton->SetText("Log In");
+        signinButton= new Button(350, 310, 100, 25, font);
+        signinButton->SetText("Register");
+        closeButton = new Button(800 - 64, 0, 64, 64, font);
+        closeButton->SetText("X");
         closeButton->onClick = [](){
             
             SM.window.close();
