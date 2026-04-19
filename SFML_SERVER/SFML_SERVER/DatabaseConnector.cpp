@@ -109,35 +109,6 @@ void DatabaseConnector::UpdateScore(Result r)
 	}
 }
 
-void DatabaseConnector::DeletePlayer()
-{
-	sql::PreparedStatement* pstmt = con->prepareStatement("CALL DeletePlayer(?)");
-	pstmt->setInt(1, 5);
-	pstmt->execute();
-	
-	while(pstmt->getMoreResults()) {
-		sql::ResultSet* extraRes = pstmt->getResultSet();
-		if(extraRes) delete extraRes;
-	}
-	delete pstmt;
-}
-
-void DatabaseConnector::PrintRanking()
-{
-	sql::PreparedStatement* pstmt = con->prepareStatement("CALL GetRanking(?)");
-	pstmt->setString(1, "Richard");
-	sql::ResultSet* res = pstmt->executeQuery();
-	while (res->next())
-		std::cout << res->getString("Username") << " - Score: " << res->getInt("Score") << std::endl;
-	delete res;
-	
-	while(pstmt->getMoreResults()) {
-		sql::ResultSet* extraRes = pstmt->getResultSet();
-		if(extraRes) delete extraRes;
-	}
-	delete pstmt;
-}
-
 std::vector<RankingData> DatabaseConnector::GetRanking(std::string playerName)
 {
 	std::vector<RankingData> rankingDataEntries;

@@ -15,8 +15,8 @@ int main()
     GameScene* gameScene = new GameScene();
     RankingScene* rankingScene = new RankingScene();
     LobbyScene* lobbyScene = new LobbyScene();
-    SM.window = sf::RenderWindow(sf::VideoMode({ 800, 600 }), "Conecta3 Cliente");
-    SM.window.setFramerateLimit(60);
+    SM.window = sf::RenderWindow(sf::VideoMode({ Config::Window::WIDTH,Config::Window::HEIGHT }), Config::Window::NAME);
+    SM.window.setFramerateLimit(Config::Window::FPS);
     SM.AddScene("LoginScene", loginScene);
     SM.AddScene("GameScene", gameScene);
     SM.AddScene("LobbyScene", lobbyScene);
@@ -28,8 +28,6 @@ int main()
         //return -1;
     }
 
-    std::string command;
-    std::string roomId;
     unsigned short gamePort = 56000;
 
     sf::Clock dtClock;
@@ -48,7 +46,7 @@ int main()
         }
 
         SM.UpdateCurrentScene(dt);
-        SM.window.clear(sf::Color(30, 30, 30));
+        SM.window.clear(Config::UI::COLOR_BACKGROUND);
 
         if (SM.GetCurrentScene())
             SM.GetCurrentScene()->Render(SM.window);

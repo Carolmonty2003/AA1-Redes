@@ -13,7 +13,6 @@ private:
     std::unique_ptr<Button> backButton;
     std::vector<std::pair<std::string, int>> rankingData;
 
-    void LoadRanking();
     void BuildUI();
 
 public:

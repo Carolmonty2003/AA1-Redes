@@ -4,7 +4,6 @@
 #include <vector>
 #include <memory>
 #include <string>
-#include <map>
 #include "ConnectedClient.h"
 #include "RoomManager.h"
 #include "PacketTypes.h"

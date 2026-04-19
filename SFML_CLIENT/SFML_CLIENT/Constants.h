@@ -33,6 +33,14 @@ namespace Config
         const float MAX_TURN_TIME = 20.0f;
         const int   DEFAULT_SCORE = 1000;
         inline const char* DEFAULT_ROOM = "test_room";
+        const int   WIN_COUNT = 3;
+        const float HUD_TURN_X = 20.f;
+        const float HUD_TURN_Y = 20.f;
+        const float HUD_SCORE_X = 620.f;
+        const float HUD_SCORE_SPACING_Y = 25.f;
+        const int WIN_GAME = 20;
+        const int LOSE_GAME = -5;
+
 
         //Colores jugadores
         inline const sf::Color PLAYER_COLORS[] = {
@@ -93,14 +101,19 @@ namespace Config
         const float STATUS_Y = 380.f;
         const float ROOM_INFO_X = 20.f;
         const float ROOM_INFO_Y = 20.f;
+        const float BUTTON_PADDING = 10.f;
     }
 
     namespace Ranking
     {
         const float TITLE_X = 330.f;
         const float TITLE_Y = 100.f;
-		const float TEXT_X = 200.f;
-		const float TEXT_Y = 180.f;
-		const float SPACING_Y = 30.f;
+        const float TEXT_X = 200.f;
+        const float TEXT_Y = 180.f;
+        const float SPACING_Y = 30.f;
+        const float BACK_BUTTON_X = 200.f;
+        const float BACK_BUTTON_Y = 500.f;
+        const float BACK_BUTTON_W = 400.f;
+        const float BACK_BUTTON_H = 50.f;
     }
 }

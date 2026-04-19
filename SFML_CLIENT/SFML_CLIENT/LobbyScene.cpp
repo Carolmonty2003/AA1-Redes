@@ -220,10 +220,3 @@ void LobbyScene::OnExit()
     std::cout << "Saliendo del Lobby..." << std::endl;
 }
 
-void LobbyScene::AskDeleteRoom()
-{
-}
-
-void LobbyScene::GetRanking()
-{
-}

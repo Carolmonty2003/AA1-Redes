@@ -22,8 +22,6 @@ void RankingScene::BuildUI()
 void RankingScene::OnEnter()
 {
     BuildUI();
-
-    // ejemplo datos
     rankingData.clear();
     NM.SendRankingRequest(NM.GetClientState().nickname);
 }

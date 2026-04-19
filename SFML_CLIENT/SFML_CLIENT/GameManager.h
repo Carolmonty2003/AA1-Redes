@@ -6,22 +6,12 @@
 #include "Player.h"
 #include "PacketTypes.h"
 
-
-#define GRIDCOLUMN 6
-#define GRIDROW 6
-
 class GameManager
 {
 private:
-  
-  
-    const short CELL_SIZE = 90;
-
-   
     std::vector<Player> players;
     int currentTurnIndex = 0;
     float turnTimer = 0.0f;
-    const float MAX_TURN_TIME = 20.0f;
 
     std::vector<int> victoryOrder;
     bool isGameOver = false;
