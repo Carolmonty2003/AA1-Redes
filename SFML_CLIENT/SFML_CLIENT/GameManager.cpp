@@ -198,8 +198,8 @@ void GameManager::TryPlacePieceScreen(float mouseX, float mouseY)
     if (isGameOver || players.empty()) return;
     if (players[currentTurnIndex].id != localPlayerID) return;
 
-    float offsetX = (800.f - (Config::Game::GRID_COLUMNS * Config::Game::CELL_SIZE)) / 2.f;
-    float offsetY = (600.f - (Config::Game::GRID_ROWS * Config::Game::CELL_SIZE)) / 2.f;
+    float offsetX = (Config::Window::WIDTH - (Config::Game::GRID_COLUMNS * Config::Game::CELL_SIZE)) / 2.f;
+    float offsetY = (Config::Window::HEIGHT - (Config::Game::GRID_ROWS * Config::Game::CELL_SIZE)) / 2.f;
 
     // Ignore clicks outside grid
     if (mouseX < offsetX || mouseX > offsetX + (Config::Game::GRID_COLUMNS * Config::Game::CELL_SIZE) ||
@@ -315,11 +315,11 @@ void GameManager::CheckGameOver()
         for (int i = 0; i < players.size(); i++) {
             Result r;
             r.username = players[i].nickName;
-            r.scoredPoints = -5;
+            r.scoredPoints = Config::Game::LOSE_GAME;
             for (int j = 0; j < victoryOrder.size(); j++)
             {
                 if (victoryOrder[j] == players[i].id) {
-                    r.scoredPoints = 20;
+                    r.scoredPoints = Config::Game::WIN_GAME;
                     break;
                 }
             }

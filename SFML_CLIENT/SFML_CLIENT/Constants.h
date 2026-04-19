@@ -38,6 +38,9 @@ namespace Config
         const float HUD_TURN_Y = 20.f;
         const float HUD_SCORE_X = 620.f;
         const float HUD_SCORE_SPACING_Y = 25.f;
+        const int WIN_GAME = 20;
+        const int LOSE_GAME = -5;
+
 
         //Colores jugadores
         inline const sf::Color PLAYER_COLORS[] = {

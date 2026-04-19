@@ -28,8 +28,6 @@ int main()
         //return -1;
     }
 
-    std::string command;
-    std::string roomId;
     unsigned short gamePort = 56000;
 
     sf::Clock dtClock;
