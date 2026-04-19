@@ -356,14 +356,6 @@ void NetworkManager::HandleJoinRoomResponse(sf::Packet& packet)
         m_clientState.isWaitingInRoom = true;
         m_clientState.hasGameStarted = false;
     }
-    else
-    {
-        if (responseData.roomId == "test_room")
-        {
-            std::cout << "[CLIENT] No existe test_room la creamos ahora..." << std::endl;
-            SendCreateRoomRequest("test_room", m_clientState.nickname, m_clientState.myGamePort);
-        }
-    }
 }
 
 void NetworkManager::HandleRoomStatusUpdate(sf::Packet& packet)
