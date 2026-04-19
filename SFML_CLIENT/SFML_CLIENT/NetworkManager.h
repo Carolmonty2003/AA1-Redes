@@ -47,6 +47,7 @@ public:
     void SendToServer(sf::Packet& packet);
     void SendLoginRequest(const std::string& username, const std::string& password);
     void SendRegisterRequest(const std::string& username, const std::string& password);
+    void NotifyPlayerWin(const std::string& username);
 
 private:
     NetworkManager();
@@ -61,6 +62,8 @@ private:
     void HandleErrorMessage(sf::Packet& packet);
     void HandleLoginResponse(sf::Packet& packet);
     void HandleRegisterResponse(sf::Packet& packet);
+
+
 
     sf::TcpSocket m_socket;
     bool m_isConnected;

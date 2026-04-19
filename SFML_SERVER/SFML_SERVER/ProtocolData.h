@@ -91,6 +91,18 @@ struct StartGameData
     std::vector<LobbyPlayerInfo> players;
 };
 
+struct Result {
+    std::string username;
+    int scoredPoints = 0;
+};
+struct GameResultData {
+    std::vector<Result> results;
+};
+sf::Packet& operator<<(sf::Packet& packet, const Result& data);
+sf::Packet& operator>>(sf::Packet& packet, Result& data);
+sf::Packet& operator<<(sf::Packet& packet, const GameResultData& data);
+sf::Packet& operator>>(sf::Packet& packet, GameResultData& data);
+
 // Error generico
 struct ErrorMessageData
 {

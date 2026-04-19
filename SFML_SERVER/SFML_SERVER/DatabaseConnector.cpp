@@ -75,10 +75,28 @@ void  DatabaseConnector::AddPlayer(RegisterRequestData rrd)
 		pstmt->setString(2, rrd.password);
 		pstmt->execute();
 		
-		// Consumir resultados de las stored procedure
 		while(pstmt->getMoreResults()) {
 			sql::ResultSet* extraRes = pstmt->getResultSet();
 			if(extraRes) delete extraRes;
+		}
+		delete pstmt;
+	}
+	catch (sql::SQLException& e) {
+		std::cout << "AddPlayer error: " << e.what() << std::endl;
+	}
+}
+
+void DatabaseConnector::UpdateScore(Result r)
+{
+	try {
+		sql::PreparedStatement* pstmt = con->prepareStatement("CALL UpdateScore( ?, ? )");
+		pstmt->setString(1, r.username);
+		pstmt->setInt(2, r.scoredPoints);
+		pstmt->execute();
+		while (pstmt->getMoreResults()) {
+			sql::ResultSet* extraRes = pstmt->getResultSet();
+			if (extraRes)
+				delete extraRes;
 		}
 		delete pstmt;
 	}

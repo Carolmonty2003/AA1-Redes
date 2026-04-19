@@ -37,6 +37,7 @@ private:
 
     void HandleCreateRoomRequest(ConnectedClient& client, sf::Packet& packet);
     void HandleJoinRoomRequest(ConnectedClient& client, sf::Packet& packet);
+    void HandleEndGame(ConnectedClient& client, sf::Packet& packet);
 
     void SendCreateRoomResponse(ConnectedClient& client, bool success, const std::string& roomId, const std::string& message);
     void SendJoinRoomResponse(ConnectedClient& client, bool success, const std::string& roomId, const std::string& message);

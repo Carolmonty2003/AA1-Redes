@@ -111,11 +111,9 @@ void NetworkManager::ProcessPacket(ConnectedClient& client, sf::Packet& packet)
     case PacketType::JOIN_ROOM_REQUEST:
         HandleJoinRoomRequest(client, packet);
         break;
-
-    case PacketType::RANKINGUPDATE:
-        HandleRankingUpdate(client, packet);
+    case PacketType::ENDGAME:
+        HandleEndGame(client, packet);
         break;
-
     default:
         std::cout << "[SERVER] Paquete no gestionado recibido de playerId "
             << client.playerId
@@ -225,6 +223,16 @@ void NetworkManager::HandleJoinRoomRequest(ConnectedClient& client, sf::Packet& 
     m_roomManager.PrintRooms();
 }
 
+void NetworkManager::HandleEndGame(ConnectedClient& client, sf::Packet& packet)
+{
+    GameResultData resultData;
+    packet >> resultData;
+    for (const Result& r : resultData.results)
+        DC.UpdateScore(r);
+}
+
+
+
 void NetworkManager::SendCreateRoomResponse(ConnectedClient& client, bool success, const std::string& roomId, const std::string& message)
 {
     if (client.socket == nullptr)
@@ -278,6 +286,8 @@ void NetworkManager::SendRegisterResponse(ConnectedClient& client, const Registe
     packet << data;
     client.socket->send(packet);
 }
+
+
 
 void NetworkManager::SendErrorMessage(ConnectedClient& client, const std::string& message)
 {
