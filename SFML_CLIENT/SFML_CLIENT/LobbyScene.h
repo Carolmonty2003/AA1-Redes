@@ -35,6 +35,4 @@ public:
     void OnExit() override;
 
     void AskCreateRoom();
-    void AskDeleteRoom();
-    void GetRanking();
 };

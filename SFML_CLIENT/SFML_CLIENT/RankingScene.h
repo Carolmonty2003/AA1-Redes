@@ -13,7 +13,6 @@ private:
     std::unique_ptr<Button> backButton;
     std::vector<std::pair<std::string, int>> rankingData;
 
-    void LoadRanking();
     void BuildUI();
 
 public:
@@ -23,5 +22,4 @@ public:
     void HandleEvent(const sf::Event& event) override;
     void Update(float dt) override;
     void Render(sf::RenderWindow& window) override;
-    void OnExit() override;
 };

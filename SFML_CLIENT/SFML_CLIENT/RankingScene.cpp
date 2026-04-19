@@ -22,8 +22,6 @@ void RankingScene::BuildUI()
 void RankingScene::OnEnter()
 {
     BuildUI();
-
-    // ejemplo datos
     rankingData.clear();
     NM.SendRankingRequest(NM.GetClientState().nickname);
 }
@@ -70,8 +68,4 @@ void RankingScene::Render(sf::RenderWindow& window)
     }
 
     if (backButton) backButton->Draw(window);
-}
-
-void RankingScene::OnExit()
-{
 }

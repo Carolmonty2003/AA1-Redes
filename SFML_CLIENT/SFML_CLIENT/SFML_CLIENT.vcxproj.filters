@@ -45,12 +45,6 @@
     <ClCompile Include="SceneManager.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
-    <ClCompile Include="Renderer.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
     <ClCompile Include="LoginScene.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
