@@ -85,11 +85,21 @@ namespace Config
 		const float INPUT_HEIGHT = 40.f;
 		const float CREATE_BUTTON_X = 330.f;
 		const float CREATE_BUTTON_Y = 250.f;
+		const float RANKING_BUTTON_X = 330.f;
+		const float RANKING_BUTTON_Y = 400.f;
 		const float BUTTON_WIDTH = 140.f;
 		const float BUTTON_HEIGHT = 45.f;
         const float STATUS_X = 230.f;
         const float STATUS_Y = 380.f;
         const float ROOM_INFO_X = 20.f;
         const float ROOM_INFO_Y = 20.f;
+    }
+
+    namespace Ranking
+    {
+        const float TITLE_X = 330.f;
+        const float TITLE_Y = 100.f;
+		const float TEXT_X = 200.f;
+		const float TEXT_Y = 180.f;
     }
 }
