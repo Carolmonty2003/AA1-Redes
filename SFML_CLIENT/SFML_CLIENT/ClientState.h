@@ -9,6 +9,7 @@ struct ClientState
     // Identidad del jugador
     int playerId = -1;
     std::string nickname = "";
+    std::string savedPassword = "";
     unsigned short myGamePort = 0;
 
     // Estado de la sala
@@ -18,6 +19,10 @@ struct ClientState
 
     // Estado de partida
     bool hasGameStarted = false;
+
+    // Ranking pendiente al terminar partida P2P
+    bool hasPendingResult = false;
+    GameResultData pendingGameResult;
 
     // Jugadores actuales de la sala
     std::vector<LobbyPlayerInfo> roomPlayers;

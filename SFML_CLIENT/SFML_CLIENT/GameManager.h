@@ -64,4 +64,7 @@ public:
     void DrawGrid(sf::RenderWindow& window);
    
     void DrawHUD(sf::RenderWindow& window);
+
+    // Limpia todo el estado de partida
+    void Reset();
 };

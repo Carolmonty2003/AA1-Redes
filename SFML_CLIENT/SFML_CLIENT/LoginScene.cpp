@@ -28,14 +28,37 @@ LoginScene::LoginScene()
     loginButton->onClick = [this]() {
         std::string user = usernameInputfield->getText();
         std::string pass = passwordInputfield->getText();
+        
+        // Guardar credenciales si no estan vacias
+        if (!user.empty() && !pass.empty()) {
+            NM.GetClientState().nickname = user;
+            NM.GetClientState().savedPassword = pass;
+        }
+        
+        if (!NM.IsConnected()) NM.ConnectToServer();
         NM.SendLoginRequest(user, pass);
-        };
+    };
 }
 
 void LoginScene::OnEnter()
 {
     std::cout << "Entrando a la LoginScene..." << std::endl;
 
+    std::string savedUser = NM.GetClientState().nickname;
+    std::string savedPass = NM.GetClientState().savedPassword;
+
+    if (!savedUser.empty() && !savedPass.empty())
+    {
+        // Rellenar visualmente los campos por si acaso
+        usernameInputfield->setText(savedUser);
+        passwordInputfield->setText(savedPass);
+        
+        std::cout << "[CLIENT] Auto-login detectado. Conectando..." << std::endl;
+        if (!NM.IsConnected()) {
+            NM.ConnectToServer();
+        }
+        NM.SendLoginRequest(savedUser, savedPass);
+    }
 }
 
 void LoginScene::HandleEvent(const sf::Event& event)
