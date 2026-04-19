@@ -29,32 +29,41 @@ public:
         std::cout << "Entrando a GameScene..." << std::endl;
         auto& state = NM.GetClientState();
         std::vector<Player> gamePlayers;
-        bool amIHost = false;
-        
-        for (const auto& lobbyPlayer : state.roomPlayers)
+        int myIndex = -1;
+
+        for (int i = 0; i < (int)state.roomPlayers.size(); ++i)
         {
+            const auto& lp = state.roomPlayers[i];
             Player p;
-            p.id = lobbyPlayer.playerId;
-            p.nickName = lobbyPlayer.username;
+            p.id = lp.playerId;
+            p.nickName = lp.username;
             gamePlayers.push_back(p);
 
-            if (lobbyPlayer.playerId == state.playerId) {
-                amIHost = lobbyPlayer.isHost;
-                if (amIHost) {
-                    NM.StartP2PListener(lobbyPlayer.gamePort);
-                }
+            if (lp.playerId == state.playerId) {
+                myIndex = i;
             }
         }
-        
+
         SetupGame(gamePlayers, state.playerId);
 
-        if (!amIHost) {
-            for (const auto& lobbyPlayer : state.roomPlayers) {
-                if (lobbyPlayer.isHost) {
-                    NM.AddConnection(lobbyPlayer.ip, lobbyPlayer.gamePort);
-                }
+        // Iniciar listener P2P
+        NM.StartP2PListener(state.roomPlayers[myIndex].gamePort);
+
+        for (int i = 0; i < (int)state.roomPlayers.size(); ++i)
+        {
+            if (i == myIndex) continue; // No conectar a ti mismo
+
+            const auto& lp = state.roomPlayers[i];
+            std::cout << "[CLIENT] Intentando conectar a " << lp.username 
+                      << " (" << lp.ip << ":" << lp.gamePort << ")" << std::endl;
+            
+            for (int intento = 0; intento < 10; ++intento) {
+                NM.AddConnection(lp.ip, lp.gamePort);
+                sf::sleep(sf::milliseconds(100));
             }
         }
+
+        std::cout << "[CLIENT] Conexiones establecidas: " << NM.GetConnections().size() << std::endl;
     }
 
     void HandleEvent(const sf::Event& event) override
@@ -74,6 +83,7 @@ public:
 
     void Update(float dt) override
     {
+        NM.NetworkFetch(); 
         gameManager.ReceiveNetworkMoves();
         gameManager.Update(dt);
     }

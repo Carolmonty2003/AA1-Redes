@@ -23,6 +23,13 @@ public:
 	void OnEnter() override
 	{
 		std::cout << "Entrando al LobbyScene..." << std::endl;
+
+        unsigned short myPort = static_cast<unsigned short>(56000 + NM.GetClientState().playerId);
+        NM.GetClientState().myGamePort = myPort;
+        std::cout << "[CLIENT] P2P port asignado: " << myPort << std::endl;
+
+        // Auto Matchmaking: primero intentamos unirnos, si falla la creamos
+        NM.SendJoinRoomRequest("test_room", NM.GetClientState().nickname, myPort);
 	}
 
 	void HandleEvent(const sf::Event& event) override

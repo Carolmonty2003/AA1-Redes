@@ -9,6 +9,7 @@ struct ClientState
     // Identidad del jugador
     int playerId = -1;
     std::string nickname = "";
+    unsigned short myGamePort = 0;
 
     // Estado de la sala
     std::string currentRoomId = "";
