@@ -47,6 +47,7 @@ public:
     void SendToServer(sf::Packet& packet);
     void SendLoginRequest(const std::string& username, const std::string& password);
     void SendRegisterRequest(const std::string& username, const std::string& password);
+    void SendRankingRequest(const std::string& username);
     void NotifyPlayerWin(const std::string& username);
 
 private:
@@ -62,6 +63,7 @@ private:
     void HandleErrorMessage(sf::Packet& packet);
     void HandleLoginResponse(sf::Packet& packet);
     void HandleRegisterResponse(sf::Packet& packet);
+    void HandleRankingResponse(sf::Packet& packet);
 
 
 

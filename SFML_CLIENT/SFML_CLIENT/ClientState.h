@@ -26,6 +26,7 @@ struct ClientState
 
     // Jugadores actuales de la sala
     std::vector<LobbyPlayerInfo> roomPlayers;
+    std::vector<RankingData> ranking;
 
     void ResetRoomState();
 

@@ -5,6 +5,46 @@
 #include <vector>
 #include "PacketTypes.h"
 
+//Ranking
+struct RankingData
+{
+    std::string playerName;
+    int score;
+};
+
+struct RankingRequestData
+{
+    std::string username;
+};
+
+struct RankingResponseData
+{
+    std::vector<RankingData> entries;
+};
+
+inline sf::Packet& operator<<(sf::Packet& packet, const RankingData& data)
+{
+    packet << data.playerName << data.score;
+    return packet;
+}
+inline sf::Packet& operator>>(sf::Packet& packet, RankingData& data)
+{
+    packet >> data.playerName >> data.score;
+    return packet;
+}
+inline sf::Packet& operator<<(sf::Packet& packet, const RankingRequestData& data)
+{
+    packet << data.username;
+    return packet;
+}
+inline sf::Packet& operator>>(sf::Packet& packet, RankingRequestData& data)
+{
+    packet >> data.username;
+    return packet;
+}
+sf::Packet& operator<<(sf::Packet& packet, const RankingResponseData& data);
+sf::Packet& operator>>(sf::Packet& packet, RankingResponseData& data);
+
 // Datos de Login
 struct LoginRequestData
 {

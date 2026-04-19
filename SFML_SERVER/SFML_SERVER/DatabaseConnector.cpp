@@ -1,13 +1,6 @@
 #include "DatabaseConnector.h"
 #include<iostream>
 
-std::string DatabaseConnector::HashPassword(const std::string& password)
-{
-	SHA256 sha;
-	sha.update(password);
-	return sha.toString(sha.digest());
-}
-
 DatabaseConnector::DatabaseConnector(){}
 
 void DatabaseConnector::ConnectDatabase()
@@ -30,6 +23,13 @@ void DatabaseConnector::DisconnectDatabase()
 		std::cout << "Connection closed" << std::endl;
 		delete con;
 	}
+}
+
+std::string DatabaseConnector::HashPassword(const std::string& password)
+{
+	SHA256 sha;
+	sha.update(password);
+	return sha.toString(sha.digest());
 }
 
 void DatabaseConnector::GetAllPlayers()
@@ -136,6 +136,29 @@ void DatabaseConnector::PrintRanking()
 		if(extraRes) delete extraRes;
 	}
 	delete pstmt;
+}
+
+std::vector<RankingData> DatabaseConnector::GetRanking(std::string playerName)
+{
+	std::vector<RankingData> rankingDataEntries;
+
+	sql::PreparedStatement* pstmt = con->prepareStatement("CALL GetRanking(?)");
+	pstmt->setString(1, playerName);
+	sql::ResultSet* res = pstmt->executeQuery();
+	while (res->next()) {
+		RankingData rd;
+		rd.playerName = res->getString("Username");
+		rd.score = res->getInt("Score");
+		rankingDataEntries.push_back(rd);
+	}
+	delete res;
+	while (pstmt->getMoreResults()) {
+		sql::ResultSet* extraRes = pstmt->getResultSet();
+		if (extraRes) delete extraRes;
+	}
+	delete pstmt;
+
+	return rankingDataEntries;
 }
 
 void DatabaseConnector::UpdatePlayerScore(int playerId, int scoreDiff)

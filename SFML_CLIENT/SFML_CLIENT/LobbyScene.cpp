@@ -41,6 +41,17 @@ void LobbyScene::BuildUI()
             AskJoinRoom(); 
 		};
 
+    rankingButton = std::make_unique<Button>(
+        Config::Lobby::RANKING_BUTTON_X, 
+        Config::Lobby::RANKING_BUTTON_Y, 
+        Config::Lobby::BUTTON_WIDTH, 
+        Config::Lobby::BUTTON_HEIGHT,
+        font);
+    rankingButton->SetText("Ranking");
+    rankingButton->onClick = [this]() {
+        SM.SetNextScene("RankingScene");
+    };
+
 	uiInitialized = true;
 }
 
@@ -72,6 +83,7 @@ void LobbyScene::HandleEvent(const sf::Event& event)
     if (roomIdInput) roomIdInput->handleEvent(event);
     if (createButton) createButton->handleEvent(event);
     if (joinButton) joinButton->handleEvent(event);
+    if (rankingButton) rankingButton->handleEvent(event);
 
     if (event.is<sf::Event::KeyPressed>())
     {
@@ -172,6 +184,7 @@ void LobbyScene::Render(sf::RenderWindow& window)
     if (roomIdInput) roomIdInput->Draw(window);
     if (createButton) createButton->Draw(window);
 	if (joinButton) joinButton->Draw(window);
+    if (rankingButton) rankingButton->Draw(window);
 
 	window.draw(status);
 

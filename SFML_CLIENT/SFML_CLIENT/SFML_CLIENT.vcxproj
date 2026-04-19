@@ -146,6 +146,7 @@
     <ClCompile Include="NetworkManager.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="ProtocolData.cpp" />
+    <ClCompile Include="RankingScene.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="Source.cpp" />
@@ -164,6 +165,7 @@
     <ClInclude Include="PacketTypes.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="ProtocolData.h" />
+    <ClInclude Include="RankingScene.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />

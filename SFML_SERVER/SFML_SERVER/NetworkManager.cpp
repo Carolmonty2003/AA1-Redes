@@ -107,9 +107,11 @@ void NetworkManager::ProcessPacket(ConnectedClient& client, sf::Packet& packet)
     case PacketType::CREATE_ROOM_REQUEST:
         HandleCreateRoomRequest(client, packet);
         break;
-
     case PacketType::JOIN_ROOM_REQUEST:
         HandleJoinRoomRequest(client, packet);
+        break;
+    case PacketType::RANKING_REQUEST:
+        HandleRankingRequest(client, packet);
         break;
     case PacketType::ENDGAME:
         HandleEndGame(client, packet);
@@ -238,6 +240,23 @@ void NetworkManager::HandleEndGame(ConnectedClient& client, sf::Packet& packet)
         m_roomManager.DeleteRoom(roomId);
         std::cout << "[SERVER] Sala " << roomId << " eliminada tras ENDGAME." << std::endl;
     }
+}
+
+void NetworkManager::HandleRankingRequest(ConnectedClient& client, sf::Packet& packet)
+{
+    RankingRequestData rankingRequestData;
+    packet >> rankingRequestData;
+
+    std::vector<RankingData> dbRanking = DC.GetRanking(rankingRequestData.username);
+
+    RankingResponseData response;
+    for (int i = 0; i < dbRanking.size(); i++)
+        response.entries.push_back(dbRanking[i]);
+
+    sf::Packet responsePacket;
+    responsePacket << static_cast<short>(PacketType::RANKING_RESPONSE);
+    responsePacket << response;
+    client.socket->send(responsePacket);
 }
 
 
@@ -536,8 +555,6 @@ void NetworkManager::ProcessRankingValidation(const std::string& roomId)
     {
         std::cout << "[SERVER] Ranking validado para sala " << roomId << ". Actualizando BD..." << std::endl;
         
-        // Puntos : +20 al 1ro, -5 al 2do, -10 al 3ro y 4to, etc.
-        // Asumo que el primero en el placementOrder es el ganador
         for (size_t i = 0; i < first.size(); ++i)
         {
             int playerId = first[i];
@@ -554,7 +571,7 @@ void NetworkManager::ProcessRankingValidation(const std::string& roomId)
         
         pendingRankingUpdates.erase(roomId);
     }
-    else if (updates.size() >= 4) // Si 4 validaciones no coinciden borrar todo
+    else if (updates.size() >= 4) 
     {
         std::cout << "[SERVER] Discrepancia insalvable en ranking de sala " << roomId << ". Anulando." << std::endl;
         pendingRankingUpdates.erase(roomId);
