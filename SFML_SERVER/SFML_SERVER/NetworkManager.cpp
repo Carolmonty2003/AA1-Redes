@@ -535,7 +535,7 @@ void NetworkManager::ProcessRankingValidation(const std::string& roomId)
         
         pendingRankingUpdates.erase(roomId);
     }
-    else if (updates.size() >= 4) // Si hay 4 validaciones y no coinciden, descartar todo para evitar llenar memoria
+    else if (updates.size() >= 4) // Si 4 validaciones no coinciden borrar todo
     {
         std::cout << "[SERVER] Discrepancia insalvable en ranking de sala " << roomId << ". Anulando." << std::endl;
         pendingRankingUpdates.erase(roomId);
