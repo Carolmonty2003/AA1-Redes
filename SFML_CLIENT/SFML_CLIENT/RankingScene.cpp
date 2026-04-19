@@ -69,3 +69,7 @@ void RankingScene::Render(sf::RenderWindow& window)
 
     if (backButton) backButton->Draw(window);
 }
+
+void RankingScene::OnExit()
+{
+}
