@@ -22,29 +22,11 @@ struct ClientState
     // Jugadores actuales de la sala
     std::vector<LobbyPlayerInfo> roomPlayers;
 
-    void ResetRoomState()
-    {
-        currentRoomId.clear();
-        isHost = false;
-        isWaitingInRoom = false;
-        hasGameStarted = false;
-        roomPlayers.clear();
-    }
+    void ResetRoomState();
 
-    void ResetAll()
-    {
-        playerId = -1;
-        nickname.clear();
-        ResetRoomState();
-    }
+    void ResetAll();
 
-    bool IsLoggedIn() const
-    {
-        return playerId != -1 && !nickname.empty();
-    }
+    inline bool IsLoggedIn() const {return playerId != -1 && !nickname.empty();}
 
-    bool IsInRoom() const
-    {
-        return !currentRoomId.empty();
-    }
+    inline bool IsInRoom() const { return !currentRoomId.empty();}
 };

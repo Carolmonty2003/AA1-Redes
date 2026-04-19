@@ -14,88 +14,17 @@ private:
 public:
     GameScene() = default;
 
-    void SetupGame(const std::vector<Player>& players, int localID)
-    {
-        gameManager.InitGame(players, localID);
-    }
+    void SetupGame(const std::vector<Player>& players, int localID);
 
-    void SyncNextTurn(int playerID)
-    {
-        gameManager.SyncNextTurn(playerID);
-    }
+    void SyncNextTurn(int playerID);
 
-    void OnEnter() override
-    {
-        std::cout << "Entrando a GameScene..." << std::endl;
-        auto& state = NM.GetClientState();
-        std::vector<Player> gamePlayers;
-        int myIndex = -1;
+    void OnEnter() override;
 
-        for (int i = 0; i < (int)state.roomPlayers.size(); ++i)
-        {
-            const auto& lp = state.roomPlayers[i];
-            Player p;
-            p.id = lp.playerId;
-            p.nickName = lp.username;
-            gamePlayers.push_back(p);
+    void HandleEvent(const sf::Event& event) override;
 
-            if (lp.playerId == state.playerId) {
-                myIndex = i;
-            }
-        }
+    void Update(float dt) override;
 
-        SetupGame(gamePlayers, state.playerId);
+    void Render(sf::RenderWindow& window) override;
 
-        // Iniciar listener P2P
-        NM.StartP2PListener(state.roomPlayers[myIndex].gamePort);
-
-        for (int i = 0; i < (int)state.roomPlayers.size(); ++i)
-        {
-            if (i == myIndex) continue; // No conectar a ti mismo
-
-            const auto& lp = state.roomPlayers[i];
-            std::cout << "[CLIENT] Intentando conectar a " << lp.username 
-                      << " (" << lp.ip << ":" << lp.gamePort << ")" << std::endl;
-            
-            for (int intento = 0; intento < 10; ++intento) {
-                NM.AddConnection(lp.ip, lp.gamePort);
-                sf::sleep(sf::milliseconds(100));
-            }
-        }
-
-        std::cout << "[CLIENT] Conexiones establecidas: " << NM.GetConnections().size() << std::endl;
-    }
-
-    void HandleEvent(const sf::Event& event) override
-    {
-        if (event.is<sf::Event::MouseButtonPressed>())
-        {
-            const sf::Event::MouseButtonPressed* mbInfo =
-                event.getIf<sf::Event::MouseButtonPressed>();
-
-            if (mbInfo && mbInfo->button == sf::Mouse::Button::Left)
-            {
-                gameManager.TryPlacePieceScreen(static_cast<float>(mbInfo->position.x),
-                                                static_cast<float>(mbInfo->position.y));
-            }
-        }
-    }
-
-    void Update(float dt) override
-    {
-        NM.NetworkFetch(); 
-        gameManager.ReceiveNetworkMoves();
-        gameManager.Update(dt);
-    }
-
-    void Render(sf::RenderWindow& window) override
-    {
-        gameManager.DrawGrid(window);
-        gameManager.DrawHUD(window);
-    }
-
-    void OnExit() override
-    {
-        std::cout << "Saliendo de GameScene..." << std::endl;
-    }
+    void OnExit() override;
 };

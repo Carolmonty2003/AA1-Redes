@@ -22,56 +22,16 @@ public:
 		return sm;
 	}
 
-	inline bool AddScene(std::string name, Scene* scene) {
-		if (scenes.find(name) == scenes.end()) {
-			scenes.emplace(name, scene);
-			return true;
-		}
+	bool AddScene(std::string name, Scene* scene);
+	Scene* GetScene(std::string name);
 
-		return false;
-	}
-
-	inline Scene* GetScene(std::string name) {
-		if (scenes.find(name) != scenes.end()) {
-			return scenes[name];
-		}
-
-		return nullptr;
-	}
-
-	inline bool InitFirstScene(std::string name) {
-		if (scenes.find(name) != scenes.end()) {
-			currentScene = scenes[name];
-			currentScene->OnEnter();
-			return true;
-		}
-
-		return false;
-	}
+	bool InitFirstScene(std::string name);
 
 	inline Scene* GetCurrentScene() const { return currentScene; }
 
-	inline bool SetNextScene(std::string name) {
-		if (scenes.find(name) == scenes.end()) {
-			return false;
-		}
-		nextScene = name;
-		return true;
-	}
+	bool SetNextScene(std::string name);
 
-	inline void UpdateCurrentScene(float dt) {
-		if (nextScene != "") {
-			if (currentScene) 
-				currentScene->OnExit();
-			std::cout << "Exiting from:  " << currentScene <<", netxt scene: " << scenes[nextScene] <<std::endl;
-			currentScene = scenes[nextScene];
-			if (currentScene) 
-				currentScene->OnEnter();
-			nextScene = "";
-		}
-		if (currentScene) currentScene->Update(dt);
-	}
-
+	void UpdateCurrentScene(float dt);
 
 private:
 	SceneManager() = default;
