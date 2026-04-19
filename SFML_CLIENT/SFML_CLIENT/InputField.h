@@ -9,6 +9,7 @@ public:
     void handleEvent(const sf::Event& event) override;
     void Draw(sf::RenderWindow& window) override;
     std::string getText() const;
+    void setText(const std::string& newText);
 private:
     sf::RectangleShape rect;
     sf::Text text;

@@ -83,4 +83,5 @@ void GameScene::OnExit()
 {
     std::cout << "Saliendo de GameScene..." << std::endl;
     NM.ClearConnections();
+    gameManager.Reset();
 }

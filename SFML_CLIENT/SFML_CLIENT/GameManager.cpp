@@ -1,4 +1,4 @@
-#include "GameManager.h"
+ï»¿#include "GameManager.h"
 #include "NetworkManager.h"
 #include <string>
 #include <algorithm>
@@ -24,7 +24,7 @@ void GameManager::InitGame(const std::vector<Player>& connectedPlayers, int loca
     players = connectedPlayers;
     localPlayerID = localID;
 
-    // DESPUÉS asignar colores según orden de entrada
+    // Assign colors
     for (size_t i = 0; i < players.size() && i < 4; ++i)
     {
         players[i].color = Config::Game::PLAYER_COLORS[i];
@@ -48,7 +48,7 @@ void GameManager::Update(float dt)
     if (isGameOver) return;
     if (players.empty()) return;
 
-    // Read P2P packets
+    // Read packets
     ReceiveNetworkMoves();
 
     if (isGameOver || players.empty()) return;
@@ -241,8 +241,8 @@ bool GameManager::CheckWin(int gx, int gy, int playerID)
     const int dirs[4][2][2] = {
         {{-1, 0}, {1, 0}},  // Horiz
         {{0, -1}, {0, 1}},  // Vert
-        {{-1,-1}, {1, 1}},  // Diag \ 
-        {{-1, 1}, {1,-1}}   // Diag /
+        {{-1,-1}, {1, 1}},  // Diag 
+        {{-1, 1}, {1,-1}}   // Diag
     };
 
     for (int d = 0; d < 4; d++) {
@@ -265,7 +265,7 @@ bool GameManager::CheckWin(int gx, int gy, int playerID)
 
 void GameManager::AdvanceTurn()
 {
-    // Check if board is full (Draw)
+    // Check if board is full
     bool boardFull = true;
     for (int x = 0; x < GRIDCOLUMN; x++) {
         for (int y = 0; y < GRIDROW; y++) {
@@ -287,8 +287,7 @@ void GameManager::AdvanceTurn()
             turnTimer = MAX_TURN_TIME;
             std::cout << "--- Turn: " << players[currentTurnIndex].nickName << " ---" << std::endl;
 
-            // If we are the ones who just finished or if it's our turn starting, broadcast
-            // Usually, the one who finishes their action (move or timeout) should be the one to broadcast
+           
             BroadcastNextTurn(players[currentTurnIndex].id);
             return;
         }
@@ -311,6 +310,7 @@ void GameManager::CheckGameOver()
     {
         std::cout << "=== GAME OVER ===" << std::endl;
         isGameOver = true;
+        
         GameResultData resultData;
         for (int i = 0; i < players.size(); i++) {
             Result r;
@@ -325,10 +325,31 @@ void GameManager::CheckGameOver()
             }
             resultData.results.push_back(r);
         }
-        sf::Packet packet;
-        packet << static_cast<short>(PacketType::ENDGAME);
-        packet << resultData;
-        NM.SendToServer(packet);
+
+        NM.ClearConnections();
+
+        // Reconnect to Bootstrap server
+        if (NM.ConnectToServer()) 
+        {
+            // Login save
+            std::string savedUser = NM.GetClientState().nickname;
+            std::string savedPass = NM.GetClientState().savedPassword;
+            NM.SendLoginRequest(savedUser, savedPass);
+            
+           
+            sf::Packet packet;
+            packet << static_cast<short>(PacketType::ENDGAME);
+            packet << resultData;
+            NM.SendToServer(packet);
+            
+            std::cout << "[CLIENT] Reconectado y ENDGAME enviado." << std::endl;
+        }
+        else
+        {
+            std::cerr << "[CLIENT] Fallo al conectar despues de la partida." << std::endl;
+        }
+
+        NM.GetClientState().hasPendingResult = false;
         SM.SetNextScene("LobbyScene");
     }
 }
@@ -343,7 +364,7 @@ void GameManager::DrawGrid(sf::RenderWindow& window)
             sf::RectangleShape cell({ (float)CELL_SIZE - 2.f, (float)CELL_SIZE - 2.f });
             cell.setPosition({ offsetX + (x * CELL_SIZE), offsetY + (y * CELL_SIZE) });
 
-            sf::Color color = sf::Color(50, 50, 50); // empty
+            sf::Color color = sf::Color(50, 50, 50);
             if (grid[x][y] != 0) {
                 for (const auto& p : players) {
                     if (p.id == grid[x][y]) {
@@ -374,7 +395,6 @@ void GameManager::DrawHUD(sf::RenderWindow& window)
     text.setFillColor(players[currentTurnIndex].color);
     window.draw(text);
 
-    // Scoreboard
     float yPos = 20.f;
     for (const auto& p : players) {
         sf::Text score(font);
@@ -390,4 +410,16 @@ void GameManager::DrawHUD(sf::RenderWindow& window)
 
         yPos += 25.f;
     }
+}
+
+void GameManager::Reset()
+{
+    players.clear();
+    victoryOrder.clear();
+    grid.assign(GRIDCOLUMN, std::vector<short>(GRIDROW, 0));
+    isGameOver = false;
+    currentTurnIndex = 0;
+    turnTimer = MAX_TURN_TIME;
+    localPlayerID = -1;
+    std::cout << "[CLIENT] GameManager reseteado." << std::endl;
 }

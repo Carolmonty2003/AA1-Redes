@@ -229,6 +229,15 @@ void NetworkManager::HandleEndGame(ConnectedClient& client, sf::Packet& packet)
     packet >> resultData;
     for (const Result& r : resultData.results)
         DC.UpdateScore(r);
+    
+    // Eliminar la sala para volver a jugar si quieren
+    Room* room = m_roomManager.GetRoomByPlayerId(client.playerId);
+    if (room != nullptr)
+    {
+        std::string roomId = room->roomId;
+        m_roomManager.DeleteRoom(roomId);
+        std::cout << "[SERVER] Sala " << roomId << " eliminada tras ENDGAME." << std::endl;
+    }
 }
 
 
