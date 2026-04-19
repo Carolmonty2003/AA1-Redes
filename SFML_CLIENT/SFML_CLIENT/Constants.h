@@ -36,7 +36,7 @@ namespace Config
 
         //Colores jugadores
         inline const sf::Color PLAYER_COLORS[] = {
-            sf::Color::Blue,      // Jugador 1
+            sf::Color::Cyan,      // Jugador 1
             sf::Color::Red,       // Jugador 2
             sf::Color::Green,     // Jugador 3
             sf::Color::Yellow     // Jugador 4
