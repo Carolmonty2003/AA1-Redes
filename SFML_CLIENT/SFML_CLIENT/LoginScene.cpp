@@ -19,14 +19,13 @@ LoginScene::LoginScene()
     //onclic buttons 
     closeButton->onClick = []() {
         SM.window.close();
-        };
+    };
     signinButton->onClick = [this]() {
         std::string user = usernameInputfield->getText();
         std::string pass = passwordInputfield->getText();
         NM.SendRegisterRequest(user, pass);
         };
     loginButton->onClick = [this]() {
-        PacketType pt = PacketType::LOGIN_REQUEST;
         std::string user = usernameInputfield->getText();
         std::string pass = passwordInputfield->getText();
         NM.SendLoginRequest(user, pass);

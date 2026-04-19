@@ -39,6 +39,7 @@ public:
 	void GetAllPlayers();
 	bool LoginPlayer(LoginRequestData lrd);
 	void AddPlayer(RegisterRequestData rrd);
+	void UpdateScore(Result r);
 	void DeletePlayer();
 	void PrintRanking();
 };

@@ -21,7 +21,7 @@ USE `videogame`;
 
 -- Volcando estructura para procedimiento videogame.AddPlayer
 DELIMITER //
-CREATE PROCEDURE `AddPlayer`(IN iUsername VARCHAR(50),IN iPassword CHAR(20))
+CREATE PROCEDURE `AddPlayer`(IN iUsername VARCHAR(50), IN iPassword CHAR(20))
 BEGIN
     INSERT INTO Players (Username, Password, Score) 
     VALUES (iUsername, iPassword, 0);
@@ -54,7 +54,7 @@ DELIMITER ;
 
 -- Volcando estructura para procedimiento videogame.LoginPlayer
 DELIMITER //
-CREATE PROCEDURE `LoginPlayer`(IN iUsername VARCHAR(50),IN iPassword CHAR(20))
+CREATE PROCEDURE `LoginPlayer`(IN iUsername VARCHAR(50), IN iPassword CHAR(20))
 BEGIN
     SELECT Id, Username, Score 
     FROM Players 
@@ -70,26 +70,32 @@ CREATE TABLE IF NOT EXISTS `players` (
   `Score` int(10) unsigned DEFAULT 0,
   PRIMARY KEY (`Id`),
   UNIQUE KEY `Username` (`Username`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Volcando datos para la tabla videogame.players: ~4 rows (aproximadamente)
+-- Volcando datos para la tabla videogame.players: ~10 rows (aproximadamente)
 DELETE FROM `players`;
 INSERT INTO `players` (`Id`, `Username`, `Password`, `Score`) VALUES
 	(1, 'Radev', 'RichardPringado', 100),
 	(2, 'Richard', 'RadevPringado', 20),
 	(3, 'Manish', 'Puntero', 0),
-	(4, 'FrancescoVirgolini', 'Fiuuuuuuu', 0);
+	(4, 'FrancescoVirgolini', 'Fiuuuuuuu', 0),
+	(5, 'a', 'a', 0),
+	(6, 'b', 'b', 0),
+	(7, 'c', 'c', 0),
+	(8, 'edgar', 'edgar', 0),
+	(9, 'carol', 'carol', 0),
+	(10, 'sergi', 'sergi', 0);
 
 -- Volcando estructura para procedimiento videogame.UpdateScore
 DELIMITER //
-CREATE PROCEDURE `UpdateScore`(IN Id INT UNSIGNED, IN addedPoints INT)
+CREATE PROCEDURE `UpdateScore`(IN iUsername VARCHAR(50), IN iAddedPoints INT)
 BEGIN
     UPDATE Players 
     SET Score = CASE 
-        WHEN addedPoints < 0 AND Score < ABS(addedPoints) THEN 0 
-        ELSE Score + addedPoints 
+        WHEN iAddedPoints < 0 AND Score < ABS(iAddedPoints) THEN 0 
+        ELSE Score + iAddedPoints 
     END 
-    WHERE Id = Id;
+    WHERE Username = iUsername;
 END//
 DELIMITER ;
 

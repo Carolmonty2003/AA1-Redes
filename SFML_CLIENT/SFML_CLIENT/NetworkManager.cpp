@@ -315,6 +315,13 @@ void NetworkManager::SendRegisterRequest(const std::string& username, const std:
     m_socket.send(packet);
 }
 
+void NetworkManager::NotifyPlayerWin(const std::string& username)
+{
+    sf::Packet packet;
+    packet << static_cast<short>(PacketType::ENDGAME);
+    m_socket.send(packet);
+}
+
 void NetworkManager::HandleCreateRoomResponse(sf::Packet& packet)
 {
     CreateRoomResponseData responseData;
