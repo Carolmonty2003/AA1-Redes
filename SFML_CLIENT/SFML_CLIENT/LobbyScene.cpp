@@ -155,7 +155,7 @@ void LobbyScene::Render(sf::RenderWindow& window)
     titleText.setFillColor(sf::Color::White);
 
     sf::Text labelText(font);
-    labelText.setCharacterSize(Config::UI::FONT_SIZE_TITLE);
+    labelText.setCharacterSize(Config::UI::FONT_SIZE_MEDIUM);
     labelText.setPosition({ Config::Lobby::SUBTITLE_X, Config::Lobby::SUBTITLE_Y });
     labelText.setString("ID de sala:");
     labelText.setFillColor(sf::Color::White);
@@ -183,7 +183,6 @@ void LobbyScene::Render(sf::RenderWindow& window)
 	roomInfo.setPosition({ Config::Lobby::ROOM_INFO_X, Config::Lobby::ROOM_INFO_Y });
 
 	std::string info = "Nick: " + state.nickname + "\n";
-	info += "Mi puerto P2P: " + std::to_string(state.myGamePort) + "\n";
 
     if(state.isWaitingInRoom)
     {
@@ -206,11 +205,6 @@ void LobbyScene::Render(sf::RenderWindow& window)
 void LobbyScene::OnExit()
 {
     std::cout << "Saliendo del Lobby..." << std::endl;
-}
-
-
-void LobbyScene::AskCreateRoom()
-{
 }
 
 void LobbyScene::AskDeleteRoom()
