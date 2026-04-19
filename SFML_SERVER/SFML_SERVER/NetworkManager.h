@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <map>
 #include "ConnectedClient.h"
 #include "RoomManager.h"
 #include "PacketTypes.h"
@@ -46,6 +47,9 @@ private:
     void BroadcastRoomStatus(const std::string& roomId);
     void TryStartGame(const std::string& roomId);
 
+    void HandleRankingUpdate(ConnectedClient& client, sf::Packet& packet);
+    void ProcessRankingValidation(const std::string& roomId);
+
     ConnectedClient* GetClientById(int playerId);
     ConnectedClient* GetClientBySocket(sf::TcpSocket* socket);
 
@@ -60,4 +64,5 @@ private:
     std::vector<std::unique_ptr<sf::TcpSocket>> m_sockets;
     std::vector<ConnectedClient> m_clients;
     RoomManager m_roomManager;
+    std::map<std::string, std::vector<RankingUpdateData>> pendingRankingUpdates;
 };

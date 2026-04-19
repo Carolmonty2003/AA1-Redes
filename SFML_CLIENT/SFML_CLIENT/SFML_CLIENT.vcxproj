@@ -146,14 +146,13 @@
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="ProtocolData.cpp" />
     <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="Source.cpp" />
-    <ClCompile Include="UIElement.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Button.h" />
     <ClInclude Include="ClientState.h" />
+    <ClInclude Include="Constants.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="GameScene.h" />

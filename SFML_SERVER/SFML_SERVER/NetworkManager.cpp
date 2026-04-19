@@ -112,6 +112,10 @@ void NetworkManager::ProcessPacket(ConnectedClient& client, sf::Packet& packet)
         HandleJoinRoomRequest(client, packet);
         break;
 
+    case PacketType::RANKINGUPDATE:
+        HandleRankingUpdate(client, packet);
+        break;
+
     default:
         std::cout << "[SERVER] Paquete no gestionado recibido de playerId "
             << client.playerId
@@ -477,6 +481,64 @@ void NetworkManager::PrintConnectedClients() const
             << " | ip: " << client.ip.toString()
             << " | gamePort: " << client.gamePort
             << "\n";
+    }
+}
+
+void NetworkManager::HandleRankingUpdate(ConnectedClient& client, sf::Packet& packet)
+{
+    RankingUpdateData updateData;
+    packet >> updateData;
+
+    std::cout << "[SERVER] Recibida actualización de ranking de sala " << updateData.roomId 
+              << " por jugador " << client.playerId << std::endl;
+
+    pendingRankingUpdates[updateData.roomId].push_back(updateData);
+    ProcessRankingValidation(updateData.roomId);
+}
+
+void NetworkManager::ProcessRankingValidation(const std::string& roomId)
+{
+    auto& updates = pendingRankingUpdates[roomId];
+    if (updates.size() < 2) return; // 2 Updates iguales para validar
+
+    // Verificación por pares
+    bool same = true;
+    const auto& first = updates[0].placementOrder;
+    for (size_t i = 1; i < updates.size(); ++i)
+    {
+        if (updates[i].placementOrder != first)
+        {
+            same = false;
+            break;
+        }
+    }
+
+    if (same)
+    {
+        std::cout << "[SERVER] Ranking validado para sala " << roomId << ". Actualizando BD..." << std::endl;
+        
+        // Puntos : +20 al 1ro, -5 al 2do, -10 al 3ro y 4to, etc.
+        // Asumo que el primero en el placementOrder es el ganador
+        for (size_t i = 0; i < first.size(); ++i)
+        {
+            int playerId = first[i];
+            int pointsDiff = 0;
+            if (i == 0) pointsDiff = 20;       // Ganador
+            else if (i == 1) pointsDiff = -5;  // 2do lugar
+            else pointsDiff = -10;             // 3er y 4to lugar
+
+            if (pointsDiff != 0) {
+                DC.UpdatePlayerScore(playerId, pointsDiff);
+            }
+        }
+
+        
+        pendingRankingUpdates.erase(roomId);
+    }
+    else if (updates.size() >= 4) // Si 4 validaciones no coinciden borrar todo
+    {
+        std::cout << "[SERVER] Discrepancia insalvable en ranking de sala " << roomId << ". Anulando." << std::endl;
+        pendingRankingUpdates.erase(roomId);
     }
 }
 

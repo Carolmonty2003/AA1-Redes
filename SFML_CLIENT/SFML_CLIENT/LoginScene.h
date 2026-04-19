@@ -8,6 +8,7 @@
 #include <string>
 #include "Button.h"
 #include "InputField.h"
+#include "Constants.h"
 
 class LoginScene: public Scene
 {
@@ -25,16 +26,19 @@ public:
         if (!font.openFromFile("C:\\Windows\\Fonts\\arial.ttf")) {
             std::cerr << "Warning: Failed to open arial.ttf font in Lobby" << std::endl;
         }
-        usernameInputfield = new InputField(250, 220, 300, 25, font);
-        passwordInputfield = new InputField (250, 250, 300, 25, font);
-        loginButton = new Button(350, 280, 100, 25, font);
+
+        //ui setup
+        usernameInputfield = new InputField(Config::Login::INPUT_USERNAME_X, Config::Login::INPUT_USERNAME_Y, Config::Login::INPUT_WIDTH, Config::Login::INPUT_HEIGHT, font);
+        passwordInputfield = new InputField (Config::Login::INPUT_PASSWORD_X, Config::Login::INPUT_PASSWORD_Y, Config::Login::INPUT_WIDTH, Config::Login::INPUT_HEIGHT, font);
+        loginButton = new Button(Config::Login::LOGIN_BUTTON_X, Config::Login::LOGIN_BUTTON_Y, Config::Login::BUTTON_WIDTH, Config::Login::BUTTON_HEIGHT, font);
         loginButton->SetText("Log In");
-        signinButton= new Button(350, 310, 100, 25, font);
+        signinButton= new Button(Config::Login::REGISTER_BUTTON_X, Config::Login::REGISTER_BUTTON_Y, Config::Login::BUTTON_WIDTH, Config::Login::BUTTON_HEIGHT, font);
         signinButton->SetText("Register");
-        closeButton = new Button(800 - 64, 0, 64, 64, font);
+        closeButton = new Button(Config::Window::WIDTH - Config::Login::CLOSE_BUTTON_SIZE, 0, Config::Login::CLOSE_BUTTON_SIZE, Config::Login::CLOSE_BUTTON_SIZE, font);
         closeButton->SetText("X");
+
+        //onclic buttons 
         closeButton->onClick = [](){
-            
             SM.window.close();
         };
         signinButton->onClick = [this]() {

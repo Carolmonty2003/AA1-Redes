@@ -4,7 +4,7 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #include "SceneManager.h"
-
+#include "Constants.h"
 
 class LobbyScene : public Scene
 {
@@ -67,14 +67,14 @@ public:
 	void Render(sf::RenderWindow& window) override
 	{
         sf::Text titleText(font);
-        titleText.setCharacterSize(40);
-        titleText.setPosition({ 200.f, 200.f });
+        titleText.setCharacterSize(Config::UI::FONT_SIZE_TITLE);
+        titleText.setPosition({ Config::Lobby::TITLE_X, Config::Lobby::TITLE_Y });
         titleText.setString("--- LOBBY SERVER ---");
         titleText.setFillColor(sf::Color::White);
 
         sf::Text pressSpace(font);
-        pressSpace.setCharacterSize(20);
-        pressSpace.setPosition({ 200.f, 300.f });
+        pressSpace.setCharacterSize(Config::UI::FONT_SIZE_MEDIUM);
+        pressSpace.setPosition({ Config::Lobby::SUBTITLE_X, Config::Lobby::SUBTITLE_Y });
         pressSpace.setString("Presiona ESPACIO para iniciar nueva partida");
         pressSpace.setFillColor(sf::Color::Cyan);
 
