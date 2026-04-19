@@ -2,6 +2,7 @@
 #include "NetworkManager.h"
 #include <string>
 #include <algorithm>
+#include "Constants.h"
 
 GameManager::GameManager()
 {
@@ -13,23 +14,33 @@ GameManager::GameManager()
     }
 }
 
-void GameManager::InitGame(const std::vector<Player>& connectedPlayers,
-                           int localID)
+void GameManager::InitGame(const std::vector<Player>& connectedPlayers, int localID)
 {
+
     // Reset board
     grid.assign(GRIDCOLUMN, std::vector<short>(GRIDROW, 0));
 
-    // Save players
-    players      = connectedPlayers;
+    // Save players 
+    players = connectedPlayers;
     localPlayerID = localID;
 
+    // DESPUÉS asignar colores según orden de entrada
+    for (size_t i = 0; i < players.size() && i < 4; ++i)
+    {
+        players[i].color = Config::Game::PLAYER_COLORS[i];
+    }
+
     currentTurnIndex = 0;
-    turnTimer        = MAX_TURN_TIME;
+    turnTimer = MAX_TURN_TIME;
     victoryOrder.clear();
     isGameOver = false;
 
     std::cout << "--- Game Started (P2P) ---" << std::endl;
     std::cout << "My ID: " << localPlayerID << std::endl;
+    for (const auto& p : players)
+    {
+        std::cout << "Player: " << p.nickName << " (ID: " << p.id << ")" << std::endl;
+    }
 }
 
 void GameManager::Update(float dt)
@@ -364,16 +375,19 @@ void GameManager::DrawHUD(sf::RenderWindow& window)
     window.draw(text);
 
     // Scoreboard
-    sf::Text score(font);
-    score.setCharacterSize(16);
-    score.setPosition({ 600.f, 20.f });
-
-    std::string scoreStr = "Players:\n";
+    float yPos = 20.f;
     for (const auto& p : players) {
-        scoreStr += p.nickName + ": " + std::to_string(p.scoreRanking);
+        sf::Text score(font);
+        score.setCharacterSize(16);
+        score.setPosition({ 600.f, yPos });
+
+        std::string scoreStr = p.nickName + ": " + std::to_string(p.scoreRanking);
         if (p.isSpectator) scoreStr += " (ESP)";
-        scoreStr += "\n";
+
+        score.setString(scoreStr);
+        score.setFillColor(p.color);
+        window.draw(score);
+
+        yPos += 25.f;
     }
-    score.setString(scoreStr);
-    window.draw(score);
 }
