@@ -45,10 +45,7 @@ public:
 	bool LoginPlayer(LoginRequestData lrd);
 	void AddPlayer(RegisterRequestData rrd);
 	void UpdateScore(Result r);
-
-	void DeletePlayer();
 	void UpdatePlayerScore(int playerId, int scoreDiff);
-	void PrintRanking();
 	std::vector<RankingData> GetRanking(std::string playerName);
 };
 
