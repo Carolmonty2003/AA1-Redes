@@ -135,7 +135,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ConnectedClient.cpp" />
     <ClCompile Include="DatabaseConnector.cpp" />
     <ClCompile Include="NetworkManager.cpp" />
     <ClCompile Include="ProtocolData.cpp" />
