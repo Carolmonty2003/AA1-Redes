@@ -6,7 +6,7 @@
 
 GameManager::GameManager()
 {
-    grid.assign(GRIDCOLUMN, std::vector<short>(GRIDROW, 0));
+    grid.assign(Config::Game::GRID_COLUMNS, std::vector<short>(Config::Game::GRID_ROWS, 0));
 
     if (!font.openFromFile("C:\\Windows\\Fonts\\arial.ttf"))
     {
@@ -18,7 +18,7 @@ void GameManager::InitGame(const std::vector<Player>& connectedPlayers, int loca
 {
 
     // Reset board
-    grid.assign(GRIDCOLUMN, std::vector<short>(GRIDROW, 0));
+    grid.assign(Config::Game::GRID_COLUMNS, std::vector<short>(Config::Game::GRID_ROWS, 0));
 
     // Save players 
     players = connectedPlayers;
@@ -31,7 +31,7 @@ void GameManager::InitGame(const std::vector<Player>& connectedPlayers, int loca
     }
 
     currentTurnIndex = 0;
-    turnTimer = MAX_TURN_TIME;
+    turnTimer = Config::Game::MAX_TURN_TIME;
     victoryOrder.clear();
     isGameOver = false;
 
@@ -185,7 +185,7 @@ void GameManager::SyncNextTurn(int nextPlayerID)
             if (currentTurnIndex != i)
             {
                 currentTurnIndex = i;
-                turnTimer = MAX_TURN_TIME;
+                turnTimer = Config::Game::MAX_TURN_TIME;
                 std::cout << "Network Sync: Turn passed to " << players[i].nickName << std::endl;
             }
             break;
@@ -198,22 +198,22 @@ void GameManager::TryPlacePieceScreen(float mouseX, float mouseY)
     if (isGameOver || players.empty()) return;
     if (players[currentTurnIndex].id != localPlayerID) return;
 
-    float offsetX = (800.f - (GRIDCOLUMN * CELL_SIZE)) / 2.f;
-    float offsetY = (600.f - (GRIDROW * CELL_SIZE)) / 2.f;
+    float offsetX = (800.f - (Config::Game::GRID_COLUMNS * Config::Game::CELL_SIZE)) / 2.f;
+    float offsetY = (600.f - (Config::Game::GRID_ROWS * Config::Game::CELL_SIZE)) / 2.f;
 
     // Ignore clicks outside grid
-    if (mouseX < offsetX || mouseX > offsetX + (GRIDCOLUMN * CELL_SIZE) ||
-        mouseY < offsetY || mouseY > offsetY + (GRIDROW * CELL_SIZE)) return;
+    if (mouseX < offsetX || mouseX > offsetX + (Config::Game::GRID_COLUMNS * Config::Game::CELL_SIZE) ||
+        mouseY < offsetY || mouseY > offsetY + (Config::Game::GRID_ROWS * Config::Game::CELL_SIZE)) return;
 
-    int gx = (int)((mouseX - offsetX) / CELL_SIZE);
-    int gy = (int)((mouseY - offsetY) / CELL_SIZE);
+    int gx = (int)((mouseX - offsetX) / Config::Game::CELL_SIZE);
+    int gy = (int)((mouseY - offsetY) / Config::Game::CELL_SIZE);
 
     TryPlacePieceGrid(gx, gy, currentTurnIndex);
 }
 
 bool GameManager::TryPlacePieceGrid(int gx, int gy, int playerIndex)
 {
-    if (gx < 0 || gx >= GRIDCOLUMN || gy < 0 || gy >= GRIDROW) return false;
+    if (gx < 0 || gx >= Config::Game::GRID_COLUMNS || gy < 0 || gy >= Config::Game::GRID_ROWS) return false;
     if (grid[gx][gy] != 0) return false;
 
     int playerID = players[playerIndex].id;
@@ -252,7 +252,7 @@ bool GameManager::CheckWin(int gx, int gy, int playerID)
             while (true) {
                 int nx = gx + dirs[d][side][0] * k;
                 int ny = gy + dirs[d][side][1] * k;
-                if (nx < 0 || nx >= GRIDCOLUMN || ny < 0 || ny >= GRIDROW) break;
+                if (nx < 0 || nx >= Config::Game::GRID_COLUMNS || ny < 0 || ny >= Config::Game::GRID_ROWS) break;
                 if (grid[nx][ny] != playerID) break;
                 count++;
                 k++;
@@ -267,8 +267,8 @@ void GameManager::AdvanceTurn()
 {
     // Check if board is full
     bool boardFull = true;
-    for (int x = 0; x < GRIDCOLUMN; x++) {
-        for (int y = 0; y < GRIDROW; y++) {
+    for (int x = 0; x < Config::Game::GRID_COLUMNS; x++) {
+        for (int y = 0; y < Config::Game::GRID_ROWS; y++) {
             if (grid[x][y] == 0) boardFull = false;
         }
     }
@@ -284,7 +284,7 @@ void GameManager::AdvanceTurn()
     for (int i = 0; i < total; i++) {
         currentTurnIndex = (currentTurnIndex + 1) % total;
         if (!players[currentTurnIndex].isSpectator) {
-            turnTimer = MAX_TURN_TIME;
+            turnTimer = Config::Game::MAX_TURN_TIME;
             std::cout << "--- Turn: " << players[currentTurnIndex].nickName << " ---" << std::endl;
 
            
@@ -301,8 +301,8 @@ void GameManager::CheckGameOver()
     for (const auto& p : players) if (p.isSpectator) spectators++;
 
     bool boardFull = true;
-    for (int x = 0; x < GRIDCOLUMN; x++)
-        for (int y = 0; y < GRIDROW; y++)
+    for (int x = 0; x < Config::Game::GRID_COLUMNS; x++)
+        for (int y = 0; y < Config::Game::GRID_ROWS; y++)
             if (grid[x][y] == 0) boardFull = false;
 
     
@@ -356,13 +356,13 @@ void GameManager::CheckGameOver()
 
 void GameManager::DrawGrid(sf::RenderWindow& window)
 {
-    float offsetX = (800.f - (GRIDCOLUMN * CELL_SIZE)) / 2.f;
-    float offsetY = (600.f - (GRIDROW * CELL_SIZE)) / 2.f;
+    float offsetX = (800.f - (Config::Game::GRID_COLUMNS * Config::Game::CELL_SIZE)) / 2.f;
+    float offsetY = (600.f - (Config::Game::GRID_ROWS * Config::Game::CELL_SIZE)) / 2.f;
 
-    for (int x = 0; x < GRIDCOLUMN; x++) {
-        for (int y = 0; y < GRIDROW; y++) {
-            sf::RectangleShape cell({ (float)CELL_SIZE - 2.f, (float)CELL_SIZE - 2.f });
-            cell.setPosition({ offsetX + (x * CELL_SIZE), offsetY + (y * CELL_SIZE) });
+    for (int x = 0; x < Config::Game::GRID_COLUMNS; x++) {
+        for (int y = 0; y < Config::Game::GRID_ROWS; y++) {
+            sf::RectangleShape cell({ (float)Config::Game::CELL_SIZE - 2.f, (float)Config::Game::CELL_SIZE - 2.f });
+            cell.setPosition({ offsetX + (x * Config::Game::CELL_SIZE), offsetY + (y * Config::Game::CELL_SIZE) });
 
             sf::Color color = sf::Color(50, 50, 50);
             if (grid[x][y] != 0) {
@@ -416,10 +416,10 @@ void GameManager::Reset()
 {
     players.clear();
     victoryOrder.clear();
-    grid.assign(GRIDCOLUMN, std::vector<short>(GRIDROW, 0));
+    grid.assign(Config::Game::GRID_COLUMNS, std::vector<short>(Config::Game::GRID_ROWS, 0));
     isGameOver = false;
     currentTurnIndex = 0;
-    turnTimer = MAX_TURN_TIME;
+    turnTimer = Config::Game::MAX_TURN_TIME;
     localPlayerID = -1;
     std::cout << "[CLIENT] GameManager reseteado." << std::endl;
 }
