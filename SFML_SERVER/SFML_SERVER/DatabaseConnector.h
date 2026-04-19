@@ -40,6 +40,7 @@ public:
 	bool LoginPlayer(LoginRequestData lrd);
 	void AddPlayer(RegisterRequestData rrd);
 	void DeletePlayer();
+	void UpdatePlayerScore(int playerId, int scoreDiff);
 	void PrintRanking();
 };
 

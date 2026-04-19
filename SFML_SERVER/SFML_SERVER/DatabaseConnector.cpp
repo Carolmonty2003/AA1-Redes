@@ -115,3 +115,23 @@ void DatabaseConnector::PrintRanking()
 	}
 	delete pstmt;
 }
+
+void DatabaseConnector::UpdatePlayerScore(int playerId, int scoreDiff)
+{
+	try {
+        // En lugar de usar la stored procedure UpdateScore (que tiene el bug de Id = Id), 
+        // hacemos la query pura para asegurarnos del correcto update en DB.
+		sql::PreparedStatement* pstmt = con->prepareStatement(
+			"UPDATE players SET Score = GREATEST(0, CAST(Score AS SIGNED) + ?) WHERE Id = ?"
+		);
+		pstmt->setInt(1, scoreDiff);
+		pstmt->setInt(2, playerId);
+		pstmt->execute();
+		
+		std::cout << "[SERVER] BD: Player " << playerId << " score actualizado con " << scoreDiff << " puntos." << std::endl;
+        delete pstmt;
+	}
+	catch (sql::SQLException& e) {
+		std::cout << "[SERVER] UpdatePlayerScore error: " << e.what() << std::endl;
+	}
+}

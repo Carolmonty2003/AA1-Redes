@@ -97,6 +97,12 @@ struct ErrorMessageData
     std::string message;
 };
 
+struct RankingUpdateData
+{
+    std::string roomId;
+    std::vector<int> placementOrder; // orden de jugadores
+};
+
 // LobbyPlayerInfo
 inline sf::Packet& operator<<(sf::Packet& packet, const LobbyPlayerInfo& data)
 {
@@ -249,3 +255,29 @@ sf::Packet& operator>>(sf::Packet& packet, RoomStatusUpdateData& data);
 
 sf::Packet& operator<<(sf::Packet& packet, const StartGameData& data);
 sf::Packet& operator>>(sf::Packet& packet, StartGameData& data);
+
+// RankingUpdateData
+inline sf::Packet& operator<<(sf::Packet& packet, const RankingUpdateData& data)
+{
+    packet << data.roomId;
+    packet << static_cast<int>(data.placementOrder.size());
+    for (int playerId : data.placementOrder)
+    {
+        packet << playerId;
+    }
+    return packet;
+}
+
+inline sf::Packet& operator>>(sf::Packet& packet, RankingUpdateData& data)
+{
+    int size = 0;
+    packet >> data.roomId >> size;
+    data.placementOrder.clear();
+    for (int i = 0; i < size; ++i)
+    {
+        int playerId;
+        packet >> playerId;
+        data.placementOrder.push_back(playerId);
+    }
+    return packet;
+}
