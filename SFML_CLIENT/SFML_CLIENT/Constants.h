@@ -101,5 +101,6 @@ namespace Config
         const float TITLE_Y = 100.f;
 		const float TEXT_X = 200.f;
 		const float TEXT_Y = 180.f;
+		const float SPACING_Y = 30.f;
     }
 }

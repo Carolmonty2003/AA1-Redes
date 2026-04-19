@@ -47,7 +47,7 @@ void RankingScene::Update(float dt)
 void RankingScene::Render(sf::RenderWindow& window)
 {
     sf::Text title(font);
-    title.setCharacterSize(40);
+    title.setCharacterSize(Config::UI::FONT_SIZE_TITLE);
     title.setPosition({Config::Ranking::TITLE_X, Config::Ranking::TITLE_Y});
     title.setString("RANKING");
     title.setFillColor(sf::Color::Cyan);
@@ -58,14 +58,14 @@ void RankingScene::Render(sf::RenderWindow& window)
     for (const auto& entry : rankingData)
     {
         sf::Text rankText(font);
-        rankText.setCharacterSize(Config::UI::FONT_SIZE_SMALL);
+        rankText.setCharacterSize(Config::UI::FONT_SIZE_NORMAL);
         rankText.setFillColor(sf::Color::White);
         rankText.setPosition({ Config::Ranking::TEXT_X, yPos });
         std::string rankStr = std::to_string(position) + ". " + entry.first + " - " + std::to_string(entry.second);
         rankText.setString(rankStr);
         window.draw(rankText);
 
-        yPos += Config::UI::FONT_SIZE_SMALL;
+        yPos += Config::Ranking::SPACING_Y;
         position++;
     }
 

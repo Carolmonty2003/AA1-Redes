@@ -546,8 +546,6 @@ void NetworkManager::ProcessRankingValidation(const std::string& roomId)
     {
         std::cout << "[SERVER] Ranking validado para sala " << roomId << ". Actualizando BD..." << std::endl;
         
-        // Puntos : +20 al 1ro, -5 al 2do, -10 al 3ro y 4to, etc.
-        // Asumo que el primero en el placementOrder es el ganador
         for (size_t i = 0; i < first.size(); ++i)
         {
             int playerId = first[i];
@@ -564,7 +562,7 @@ void NetworkManager::ProcessRankingValidation(const std::string& roomId)
         
         pendingRankingUpdates.erase(roomId);
     }
-    else if (updates.size() >= 4) // Si 4 validaciones no coinciden borrar todo
+    else if (updates.size() >= 4) 
     {
         std::cout << "[SERVER] Discrepancia insalvable en ranking de sala " << roomId << ". Anulando." << std::endl;
         pendingRankingUpdates.erase(roomId);
