@@ -67,9 +67,21 @@ namespace Config
 
     namespace Lobby
     {
-        const float TITLE_X = 200.f;
-        const float TITLE_Y = 200.f;
-        const float SUBTITLE_X = 200.f;
-        const float SUBTITLE_Y = 300.f;
+        const float TITLE_X = 330.f;
+        const float TITLE_Y = 100.f;
+        const float SUBTITLE_X = 250.f;
+        const float SUBTITLE_Y = 170.f;
+		const float INPUT_X = 250.f;
+		const float INPUT_Y = 200.f;
+		const float INPUT_WIDTH = 300.f;
+		const float INPUT_HEIGHT = 40.f;
+		const float CREATE_BUTTON_X = 330.f;
+		const float CREATE_BUTTON_Y = 250.f;
+		const float BUTTON_WIDTH = 140.f;
+		const float BUTTON_HEIGHT = 45.f;
+        const float STATUS_X = 230.f;
+        const float STATUS_Y = 380.f;
+        const float ROOM_INFO_X = 20.f;
+        const float ROOM_INFO_Y = 20.f;
     }
 }

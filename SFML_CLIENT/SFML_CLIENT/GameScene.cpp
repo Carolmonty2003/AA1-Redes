@@ -82,4 +82,5 @@ void GameScene::Render(sf::RenderWindow& window)
 void GameScene::OnExit()
 {
     std::cout << "Saliendo de GameScene..." << std::endl;
+    NM.ClearConnections();
 }
