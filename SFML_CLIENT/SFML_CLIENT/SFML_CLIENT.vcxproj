@@ -152,6 +152,7 @@
   <ItemGroup>
     <ClInclude Include="Button.h" />
     <ClInclude Include="ClientState.h" />
+    <ClInclude Include="Constants.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="GameScene.h" />
