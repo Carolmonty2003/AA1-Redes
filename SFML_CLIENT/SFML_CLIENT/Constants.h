@@ -33,6 +33,14 @@ namespace Config
         const float MAX_TURN_TIME = 20.0f;
         const int   DEFAULT_SCORE = 1000;
         inline const char* DEFAULT_ROOM = "test_room";
+
+        //Colores jugadores
+        inline const sf::Color PLAYER_COLORS[] = {
+            sf::Color::Cyan,      // Jugador 1
+            sf::Color::Red,       // Jugador 2
+            sf::Color::Green,     // Jugador 3
+            sf::Color::Yellow     // Jugador 4
+        };
     }
 
     namespace UI
@@ -67,9 +75,32 @@ namespace Config
 
     namespace Lobby
     {
-        const float TITLE_X = 200.f;
-        const float TITLE_Y = 200.f;
-        const float SUBTITLE_X = 200.f;
-        const float SUBTITLE_Y = 300.f;
+        const float TITLE_X = 330.f;
+        const float TITLE_Y = 100.f;
+        const float SUBTITLE_X = 250.f;
+        const float SUBTITLE_Y = 170.f;
+		const float INPUT_X = 250.f;
+		const float INPUT_Y = 200.f;
+		const float INPUT_WIDTH = 300.f;
+		const float INPUT_HEIGHT = 40.f;
+		const float CREATE_BUTTON_X = 330.f;
+		const float CREATE_BUTTON_Y = 250.f;
+		const float RANKING_BUTTON_X = 330.f;
+		const float RANKING_BUTTON_Y = 400.f;
+		const float BUTTON_WIDTH = 140.f;
+		const float BUTTON_HEIGHT = 45.f;
+        const float STATUS_X = 230.f;
+        const float STATUS_Y = 380.f;
+        const float ROOM_INFO_X = 20.f;
+        const float ROOM_INFO_Y = 20.f;
+    }
+
+    namespace Ranking
+    {
+        const float TITLE_X = 330.f;
+        const float TITLE_Y = 100.f;
+		const float TEXT_X = 200.f;
+		const float TEXT_Y = 180.f;
+		const float SPACING_Y = 30.f;
     }
 }

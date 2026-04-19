@@ -5,6 +5,46 @@
 #include <vector>
 #include "PacketTypes.h"
 
+//Ranking
+struct RankingData
+{
+    std::string playerName;
+    int score ;
+};
+
+struct RankingRequestData
+{
+    std::string username;  
+};
+
+struct RankingResponseData
+{
+    std::vector<RankingData> entries;
+};
+
+inline sf::Packet& operator<<(sf::Packet& packet, const RankingData& data)
+{
+    packet << data.playerName << data.score;
+    return packet;
+}
+inline sf::Packet& operator>>(sf::Packet& packet, RankingData& data)
+{
+    packet >> data.playerName >> data.score;
+    return packet;
+}
+inline sf::Packet& operator<<(sf::Packet& packet, const RankingRequestData& data)
+{
+    packet << data.username;
+    return packet;
+}
+inline sf::Packet& operator>>(sf::Packet& packet, RankingRequestData& data)
+{
+    packet >> data.username;
+    return packet;
+}
+sf::Packet& operator<<(sf::Packet& packet, const RankingResponseData& data);
+sf::Packet& operator>>(sf::Packet& packet, RankingResponseData& data);
+
 // Datos de Login
 struct LoginRequestData
 {
@@ -91,10 +131,28 @@ struct StartGameData
     std::vector<LobbyPlayerInfo> players;
 };
 
+struct Result {
+    std::string username;
+    int scoredPoints = 0;
+};
+struct GameResultData {
+    std::vector<Result> results;
+};
+sf::Packet& operator<<(sf::Packet& packet, const Result& data);
+sf::Packet& operator>>(sf::Packet& packet, Result& data);
+sf::Packet& operator<<(sf::Packet& packet, const GameResultData& data);
+sf::Packet& operator>>(sf::Packet& packet, GameResultData& data);
+
 // Error generico
 struct ErrorMessageData
 {
     std::string message;
+};
+
+struct RankingUpdateData
+{
+    std::string roomId;
+    std::vector<int> placementOrder; // orden de jugadores
 };
 
 // LobbyPlayerInfo
@@ -249,3 +307,29 @@ sf::Packet& operator>>(sf::Packet& packet, RoomStatusUpdateData& data);
 
 sf::Packet& operator<<(sf::Packet& packet, const StartGameData& data);
 sf::Packet& operator>>(sf::Packet& packet, StartGameData& data);
+
+// RankingUpdateData
+inline sf::Packet& operator<<(sf::Packet& packet, const RankingUpdateData& data)
+{
+    packet << data.roomId;
+    packet << static_cast<int>(data.placementOrder.size());
+    for (int playerId : data.placementOrder)
+    {
+        packet << playerId;
+    }
+    return packet;
+}
+
+inline sf::Packet& operator>>(sf::Packet& packet, RankingUpdateData& data)
+{
+    int size = 0;
+    packet >> data.roomId >> size;
+    data.placementOrder.clear();
+    for (int i = 0; i < size; ++i)
+    {
+        int playerId;
+        packet >> playerId;
+        data.placementOrder.push_back(playerId);
+    }
+    return packet;
+}

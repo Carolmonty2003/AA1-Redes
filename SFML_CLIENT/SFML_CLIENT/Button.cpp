@@ -11,15 +11,30 @@ Button::Button(float xPos, float yPos, float width, float height, sf::Font& font
 {
     rect.setPosition({ xPos, yPos });
     rect.setSize({ width, height });
+
     text.emplace(font);
-    text->setPosition({ xPos + 5, yPos + 5 });
     text->setCharacterSize(18);
     text->setFillColor(sf::Color::Black);
 }
 
 void Button::SetText(std::string newText)
 {
+    if (!text.has_value()) return;
+
     text->setString(newText);
+
+    sf::FloatRect textBounds = text->getLocalBounds(); //chatgpt centrar texto
+    sf::FloatRect rectBounds = rect.getGlobalBounds(); // mismo " "
+
+    text->setOrigin({
+        textBounds.position.x + textBounds.size.x / 2.f,
+        textBounds.position.y + textBounds.size.y / 2.f
+        });
+
+    text->setPosition({
+        rectBounds.position.x + rectBounds.size.x / 2.f,
+        rectBounds.position.y + rectBounds.size.y / 2.f
+        });
 }
 
 void Button::Draw(sf::RenderWindow& window)

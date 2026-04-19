@@ -1,5 +1,55 @@
 #include "ProtocolData.h"
 
+sf::Packet& operator<<(sf::Packet& packet, const RankingResponseData& data)
+{
+    packet << static_cast<int>(data.entries.size());
+    for (int i = 0; i < (int)data.entries.size(); i++)
+        packet << data.entries[i];
+    return packet;
+}
+
+sf::Packet& operator>>(sf::Packet& packet, RankingResponseData& data)
+{
+    int count = 0;
+    packet >> count;
+    data.entries.resize(count);
+    for (int i = 0; i < count; i++)
+        packet >> data.entries[i];
+    return packet;
+}
+
+sf::Packet& operator<<(sf::Packet& packet, const Result& data)
+{
+    packet << data.username << data.scoredPoints;
+    return packet;
+}
+
+sf::Packet& operator>>(sf::Packet& packet, Result& data)
+{
+    packet >> data.username >> data.scoredPoints;
+    return packet;
+}
+
+sf::Packet& operator<<(sf::Packet& packet, const GameResultData& data)
+{
+    packet << static_cast<int>(data.results.size());
+    for (const Result& r : data.results)
+        packet << r;
+
+    return packet;
+}
+
+sf::Packet& operator>>(sf::Packet& packet, GameResultData& data)
+{
+    int count = 0;
+    packet >> count;
+    data.results.resize(count);
+    for (int i = 0; i < count; ++i)
+        packet >> data.results[i];
+
+    return packet;
+}
+
 sf::Packet& operator<<(sf::Packet& packet, const RoomStatusUpdateData& data)
 {
     packet << data.roomId

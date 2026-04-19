@@ -40,3 +40,8 @@ std::string InputField::getText() const
 {
     return input;
 }
+void InputField::setText(const std::string& newText)
+{
+    input = newText;
+    text.setString(input);
+}

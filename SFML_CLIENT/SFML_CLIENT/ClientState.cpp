@@ -14,4 +14,5 @@ void ClientState::ResetAll()
     playerId = -1;
     nickname.clear();
     ResetRoomState();
+    ranking.clear();
 }

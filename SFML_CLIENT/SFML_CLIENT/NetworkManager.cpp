@@ -28,26 +28,21 @@ void NetworkManager::NetworkFetch()
 
 void NetworkManager::ReceiveData()
 {
-    if (!m_isConnected)
+    if (m_isConnected)
     {
-        return;
-    }
-
-    sf::Packet packet;
-    sf::Socket::Status status = m_socket.receive(packet);
-
-    while (status == sf::Socket::Status::Done)
-    {
-        ProcessPacket(packet);
-
-        packet.clear();
-        status = m_socket.receive(packet);
-    }
-
-    if (status == sf::Socket::Status::Disconnected)
-    {
-        std::cout << "[CLIENT] El servidor ha cerrado la conexion." << std::endl;
-        m_isConnected = false;
+        sf::Packet packet;
+        sf::Socket::Status status = m_socket.receive(packet);
+        while (status == sf::Socket::Status::Done)
+        {
+            ProcessPacket(packet);
+            packet.clear();
+            status = m_socket.receive(packet);
+        }
+        if (status == sf::Socket::Status::Disconnected)
+        {
+            std::cout << "[CLIENT] El servidor ha cerrado la conexion." << std::endl;
+            m_isConnected = false;
+        }
     }
 
     AcceptPeerConnections();
@@ -133,11 +128,21 @@ void NetworkManager::ClearConnections()
         sock->disconnect();
     }
     m_gameConnections.clear();
-    std::cout << "[CLIENT] Conexiones P2P cerradas." << std::endl;
+
+    // Liberar el puerto entre partidas
+    if (listener != nullptr)
+    {
+        listener->close();
+        delete listener;
+        listener = nullptr;
+    }
+
+    std::cout << "[CLIENT] Conexiones P2P y listener cerrados." << std::endl;
 }
 
 bool NetworkManager::Connect(const sf::IpAddress& serverIp, unsigned short serverPort)
 {
+    m_socket.setBlocking(true); 
     if (m_socket.connect(serverIp, serverPort) != sf::Socket::Status::Done)
     {
         std::cerr << "[CLIENT] Error al conectar con el servidor." << std::endl;
@@ -278,6 +283,10 @@ void NetworkManager::ProcessPacket(sf::Packet& packet)
         HandleErrorMessage(packet);
         break;
 
+    case PacketType::RANKING_RESPONSE:
+        HandleRankingResponse(packet);
+        break;
+
     default:
         std::cout << "[CLIENT] Paquete recibido no gestionado." << std::endl;
         break;
@@ -286,9 +295,7 @@ void NetworkManager::ProcessPacket(sf::Packet& packet)
 
 void NetworkManager::SendToServer(sf::Packet& packet)
 {
-    if (m_socket.send(packet) == sf::Socket::Status::Done) {
-
-    }
+    m_socket.send(packet);
 }
 
 void NetworkManager::SendLoginRequest(const std::string& username, const std::string& password)
@@ -312,6 +319,24 @@ void NetworkManager::SendRegisterRequest(const std::string& username, const std:
     sf::Packet packet;
     packet << static_cast<short>(PacketType::REGISTER_REQUEST);
     packet << registerRequestData;
+    m_socket.send(packet);
+}
+
+void NetworkManager::SendRankingRequest(const std::string& username)
+{
+    RankingRequestData requestData;
+    requestData.username = username;
+
+    sf::Packet packet;
+    packet << static_cast<short>(PacketType::RANKING_REQUEST);
+    packet << requestData;
+    m_socket.send(packet);
+}
+
+void NetworkManager::NotifyPlayerWin(const std::string& username)
+{
+    sf::Packet packet;
+    packet << static_cast<short>(PacketType::ENDGAME);
     m_socket.send(packet);
 }
 
@@ -348,14 +373,6 @@ void NetworkManager::HandleJoinRoomResponse(sf::Packet& packet)
         m_clientState.isHost = false;
         m_clientState.isWaitingInRoom = true;
         m_clientState.hasGameStarted = false;
-    }
-    else
-    {
-        if (responseData.roomId == "test_room")
-        {
-            std::cout << "[CLIENT] No existe test_room la creamos ahora..." << std::endl;
-            SendCreateRoomRequest("test_room", m_clientState.nickname, m_clientState.myGamePort);
-        }
     }
 }
 
@@ -410,6 +427,7 @@ void NetworkManager::HandleStartGame(sf::Packet& packet)
             << " | port: " << player.gamePort
             << std::endl;
     }
+    NM.DisconnectFromServer();
 }
 
 void NetworkManager::HandleErrorMessage(sf::Packet& packet)
@@ -430,6 +448,18 @@ void NetworkManager::HandleLoginResponse(sf::Packet& packet)
     {
         m_clientState.playerId = loginResponseData.playerId;
         m_clientState.nickname = loginResponseData.username;
+        
+        // Ranking y login
+        if (m_clientState.hasPendingResult)
+        {
+            sf::Packet rankPacket;
+            rankPacket << static_cast<short>(PacketType::ENDGAME);
+            rankPacket << m_clientState.pendingGameResult;
+            SendToServer(rankPacket);
+            
+            std::cout << "[CLIENT] Ranking pendiente enviado tas auto-login." << std::endl;
+            m_clientState.hasPendingResult = false;
+        }
     }
 }
 
@@ -437,4 +467,12 @@ void NetworkManager::HandleRegisterResponse(sf::Packet& packet)
 {
     RegisterResponseData registerResponseData;
     packet >> registerResponseData;
+}
+
+void NetworkManager::HandleRankingResponse(sf::Packet& packet)
+{
+    RankingResponseData responseData;
+    packet >> responseData;
+    m_clientState.ranking = responseData.entries;
+    std::cout << "[CLIENT] Ranking recibido: " << responseData.entries.size() << " entradas" << std::endl;
 }

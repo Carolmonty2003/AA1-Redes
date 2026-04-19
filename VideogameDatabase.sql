@@ -21,7 +21,7 @@ USE `videogame`;
 
 -- Volcando estructura para procedimiento videogame.AddPlayer
 DELIMITER //
-CREATE PROCEDURE `AddPlayer`(IN iUsername VARCHAR(50),IN iPassword CHAR(20))
+CREATE PROCEDURE `AddPlayer`(IN iUsername VARCHAR(50), IN iPassword CHAR(20))
 BEGIN
     INSERT INTO Players (Username, Password, Score) 
     VALUES (iUsername, iPassword, 0);
@@ -54,7 +54,7 @@ DELIMITER ;
 
 -- Volcando estructura para procedimiento videogame.LoginPlayer
 DELIMITER //
-CREATE PROCEDURE `LoginPlayer`(IN iUsername VARCHAR(50),IN iPassword CHAR(20))
+CREATE PROCEDURE `LoginPlayer`(IN iUsername VARCHAR(50), IN iPassword CHAR(20))
 BEGIN
     SELECT Id, Username, Score 
     FROM Players 
@@ -70,26 +70,31 @@ CREATE TABLE IF NOT EXISTS `players` (
   `Score` int(10) unsigned DEFAULT 0,
   PRIMARY KEY (`Id`),
   UNIQUE KEY `Username` (`Username`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Volcando datos para la tabla videogame.players: ~4 rows (aproximadamente)
+-- Volcando datos para la tabla videogame.players: ~9 rows (aproximadamente)
 DELETE FROM `players`;
 INSERT INTO `players` (`Id`, `Username`, `Password`, `Score`) VALUES
-	(1, 'Radev', 'RichardPringado', 100),
-	(2, 'Richard', 'RadevPringado', 20),
-	(3, 'Manish', 'Puntero', 0),
-	(4, 'FrancescoVirgolini', 'Fiuuuuuuu', 0);
+	(1, 'a', 'ca978112ca1bbdcafac2', 0),
+	(2, 'b', '3e23e8160039594a3389', 0),
+	(3, 'c', '2e7d2c03a9507ae265ec', 0),
+	(4, 'edgar', '8849853b957fe153b705', 0),
+	(5, 'sergi', '4d0af2adc4ed954308d9', 0),
+	(6, 'carol', '4c26d9074c27d89ede59', 0),
+	(7, 'Richard', 'b10883f7f6046846019e', 0),
+	(8, 'Radev', '932cc859d4215f975c3c', 0),
+	(9, 'Alex', 'f1aad41d0dd24ed8a193', 0);
 
 -- Volcando estructura para procedimiento videogame.UpdateScore
 DELIMITER //
-CREATE PROCEDURE `UpdateScore`(IN Id INT UNSIGNED, IN addedPoints INT)
+CREATE PROCEDURE `UpdateScore`(IN iUsername VARCHAR(50), IN iAddedPoints INT)
 BEGIN
     UPDATE Players 
     SET Score = CASE 
-        WHEN addedPoints < 0 AND Score < ABS(addedPoints) THEN 0 
-        ELSE Score + addedPoints 
+        WHEN iAddedPoints < 0 AND Score < ABS(iAddedPoints) THEN 0 
+        ELSE Score + iAddedPoints 
     END 
-    WHERE Id = Id;
+    WHERE Username = iUsername;
 END//
 DELIMITER ;
 
