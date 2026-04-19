@@ -33,6 +33,14 @@ namespace Config
         const float MAX_TURN_TIME = 20.0f;
         const int   DEFAULT_SCORE = 1000;
         inline const char* DEFAULT_ROOM = "test_room";
+
+        //Colores jugadores
+        inline const sf::Color PLAYER_COLORS[] = {
+            sf::Color::Blue,      // Jugador 1
+            sf::Color::Red,       // Jugador 2
+            sf::Color::Green,     // Jugador 3
+            sf::Color::Yellow     // Jugador 4
+        };
     }
 
     namespace UI
