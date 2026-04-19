@@ -1,4 +1,15 @@
 #pragma once
+#include "mysql_connection.h"
+#include <cppconn/driver.h>
+#include <cppconn/exception.h>
+#include <cppconn/prepared_statement.h>
+#include "PacketTypes.h"
+#include "ProtocolData.h"
+#include <cppconn/resultset.h>
+#include <sstream>
+#include <iomanip>
+#include "SHA256.h"
+
 
 #define LISTENER_PORT 55000
 #define SERVER "127.0.0.1::3306"
@@ -7,13 +18,6 @@
 #define DATABASE "videogame"
 
 
-#include "mysql_connection.h"
-#include <cppconn/driver.h>
-#include <cppconn/exception.h>
-#include <cppconn/prepared_statement.h>
-#include "PacketTypes.h"
-#include "ProtocolData.h"
-#include <cppconn/resultset.h>
 
 #define DC DatabaseConnector::Instance()
 
@@ -22,6 +26,7 @@ class DatabaseConnector
 private:
 	sql::Connection* con;
 	sql::Driver* driver;
+	std::string HashPassword(const std::string& password);
 
 public:
 	DatabaseConnector();
