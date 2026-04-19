@@ -1,1 +1,69 @@
 #include "ProtocolData.h"
+
+sf::Packet& operator<<(sf::Packet& packet, const RoomStatusUpdateData& data)
+{
+    packet << data.roomId
+        << data.currentPlayers
+        << data.maxPlayers;
+
+    packet << static_cast<int>(data.players.size());
+    for (const LobbyPlayerInfo& player : data.players)
+    {
+        packet << player;
+    }
+
+    return packet;
+}
+
+sf::Packet& operator>>(sf::Packet& packet, RoomStatusUpdateData& data)
+{
+    int playerCount = 0;
+
+    packet >> data.roomId
+        >> data.currentPlayers
+        >> data.maxPlayers
+        >> playerCount;
+
+    data.players.clear();
+    data.players.resize(playerCount);
+
+    for (int i = 0; i < playerCount; ++i)
+    {
+        packet >> data.players[i];
+    }
+
+    return packet;
+}
+
+sf::Packet& operator<<(sf::Packet& packet, const StartGameData& data)
+{
+    packet << data.roomId
+        << data.playerCount;
+
+    packet << static_cast<int>(data.players.size());
+    for (const LobbyPlayerInfo& player : data.players)
+    {
+        packet << player;
+    }
+
+    return packet;
+}
+
+sf::Packet& operator>>(sf::Packet& packet, StartGameData& data)
+{
+    int vectorSize = 0;
+
+    packet >> data.roomId
+        >> data.playerCount
+        >> vectorSize;
+
+    data.players.clear();
+    data.players.resize(vectorSize);
+
+    for (int i = 0; i < vectorSize; ++i)
+    {
+        packet >> data.players[i];
+    }
+
+    return packet;
+}
