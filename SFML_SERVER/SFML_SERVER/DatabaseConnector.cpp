@@ -1,10 +1,14 @@
 #include "DatabaseConnector.h"
 #include<iostream>
 
-DatabaseConnector::DatabaseConnector()
+std::string DatabaseConnector::HashPassword(const std::string& password)
 {
-
+	SHA256 sha;
+	sha.update(password);
+	return sha.toString(sha.digest());
 }
+
+DatabaseConnector::DatabaseConnector(){}
 
 void DatabaseConnector::ConnectDatabase()
 {
@@ -43,7 +47,7 @@ bool DatabaseConnector::LoginPlayer(LoginRequestData lrd)
 	try{
 		sql::PreparedStatement* pstmt = con->prepareStatement("CALL LoginPlayer( ?, ? )");
 		pstmt->setString(1, lrd.username);
-		pstmt->setString(2, lrd.password);
+		pstmt->setString(2, HashPassword(lrd.password));
 		sql::ResultSet* res = pstmt->executeQuery();
 		bool savedResult = res->next();
 		if(savedResult)
@@ -72,7 +76,7 @@ void  DatabaseConnector::AddPlayer(RegisterRequestData rrd)
 	try {
 		sql::PreparedStatement* pstmt = con->prepareStatement("CALL AddPlayer( ?, ? )");
 		pstmt->setString(1, rrd.username);
-		pstmt->setString(2, rrd.password);
+		pstmt->setString(2, HashPassword(rrd.password));
 		pstmt->execute();
 		
 		while(pstmt->getMoreResults()) {

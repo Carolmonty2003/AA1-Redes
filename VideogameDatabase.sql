@@ -72,19 +72,18 @@ CREATE TABLE IF NOT EXISTS `players` (
   UNIQUE KEY `Username` (`Username`)
 ) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Volcando datos para la tabla videogame.players: ~10 rows (aproximadamente)
+-- Volcando datos para la tabla videogame.players: ~9 rows (aproximadamente)
 DELETE FROM `players`;
 INSERT INTO `players` (`Id`, `Username`, `Password`, `Score`) VALUES
-	(1, 'Radev', 'RichardPringado', 100),
-	(2, 'Richard', 'RadevPringado', 20),
-	(3, 'Manish', 'Puntero', 0),
-	(4, 'FrancescoVirgolini', 'Fiuuuuuuu', 0),
-	(5, 'a', 'a', 0),
-	(6, 'b', 'b', 0),
-	(7, 'c', 'c', 0),
-	(8, 'edgar', 'edgar', 0),
-	(9, 'carol', 'carol', 0),
-	(10, 'sergi', 'sergi', 0);
+	(1, 'a', 'ca978112ca1bbdcafac2', 0),
+	(2, 'b', '3e23e8160039594a3389', 0),
+	(3, 'c', '2e7d2c03a9507ae265ec', 0),
+	(4, 'edgar', '8849853b957fe153b705', 0),
+	(5, 'sergi', '4d0af2adc4ed954308d9', 0),
+	(6, 'carol', '4c26d9074c27d89ede59', 0),
+	(7, 'Richard', 'b10883f7f6046846019e', 0),
+	(8, 'Radev', '932cc859d4215f975c3c', 0),
+	(9, 'Alex', 'f1aad41d0dd24ed8a193', 0);
 
 -- Volcando estructura para procedimiento videogame.UpdateScore
 DELIMITER //
