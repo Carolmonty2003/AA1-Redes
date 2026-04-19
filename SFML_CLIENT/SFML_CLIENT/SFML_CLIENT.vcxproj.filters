@@ -57,6 +57,9 @@
     <ClCompile Include="Entity.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="RankingScene.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LobbyScene.h">
@@ -111,6 +114,9 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="Constants.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="RankingScene.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>

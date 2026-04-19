@@ -25,9 +25,7 @@ void RankingScene::OnEnter()
 
     // ejemplo datos
     rankingData.clear();
-    rankingData.push_back({"Player1", 1500});
-    rankingData.push_back({"Player2", 1200});
-    rankingData.push_back({"Player3", 1000});
+    NM.SendRankingRequest(NM.GetClientState().nickname);
 }
 
 void RankingScene::HandleEvent(const sf::Event& event)
@@ -37,6 +35,13 @@ void RankingScene::HandleEvent(const sf::Event& event)
 
 void RankingScene::Update(float dt)
 {
+    NM.NetworkFetch();
+    auto& ranking = NM.GetClientState().ranking;
+    if (!ranking.empty() && rankingData.empty())
+    {
+        for (int i = 0; i < (int)ranking.size(); i++)
+            rankingData.push_back({ ranking[i].playerName, ranking[i].score });
+    }
 }
 
 void RankingScene::Render(sf::RenderWindow& window)
@@ -53,15 +58,14 @@ void RankingScene::Render(sf::RenderWindow& window)
     for (const auto& entry : rankingData)
     {
         sf::Text rankText(font);
-        rankText.setCharacterSize(20);
+        rankText.setCharacterSize(Config::UI::FONT_SIZE_SMALL);
         rankText.setFillColor(sf::Color::White);
         rankText.setPosition({ Config::Ranking::TEXT_X, yPos });
-
         std::string rankStr = std::to_string(position) + ". " + entry.first + " - " + std::to_string(entry.second);
         rankText.setString(rankStr);
         window.draw(rankText);
 
-        yPos += 50.f;
+        yPos += Config::UI::FONT_SIZE_SMALL;
         position++;
     }
 

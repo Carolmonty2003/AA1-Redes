@@ -1,6 +1,5 @@
 #include "DatabaseConnector.h"
-#include<iostream>
-
+#include <iostream>
 DatabaseConnector::DatabaseConnector()
 {
 
@@ -132,6 +131,29 @@ void DatabaseConnector::PrintRanking()
 		if(extraRes) delete extraRes;
 	}
 	delete pstmt;
+}
+
+std::vector<RankingData> DatabaseConnector::GetRanking(std::string playerName)
+{
+	std::vector<RankingData> rankingDataEntries;
+
+	sql::PreparedStatement* pstmt = con->prepareStatement("CALL GetRanking(?)");
+	pstmt->setString(1, playerName);
+	sql::ResultSet* res = pstmt->executeQuery();
+	while (res->next()) {
+		RankingData rd;
+		rd.playerName = res->getString("Username");
+		rd.score = res->getInt("Score");
+		rankingDataEntries.push_back(rd);
+	}
+	delete res;
+	while (pstmt->getMoreResults()) {
+		sql::ResultSet* extraRes = pstmt->getResultSet();
+		if (extraRes) delete extraRes;
+	}
+	delete pstmt;
+
+	return rankingDataEntries;
 }
 
 void DatabaseConnector::UpdatePlayerScore(int playerId, int scoreDiff)

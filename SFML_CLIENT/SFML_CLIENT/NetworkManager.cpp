@@ -278,6 +278,10 @@ void NetworkManager::ProcessPacket(sf::Packet& packet)
         HandleErrorMessage(packet);
         break;
 
+    case PacketType::RANKING_RESPONSE:
+        HandleRankingResponse(packet);
+        break;
+
     default:
         std::cout << "[CLIENT] Paquete recibido no gestionado." << std::endl;
         break;
@@ -286,9 +290,7 @@ void NetworkManager::ProcessPacket(sf::Packet& packet)
 
 void NetworkManager::SendToServer(sf::Packet& packet)
 {
-    if (m_socket.send(packet) == sf::Socket::Status::Done) {
-
-    }
+    m_socket.send(packet);
 }
 
 void NetworkManager::SendLoginRequest(const std::string& username, const std::string& password)
@@ -312,6 +314,17 @@ void NetworkManager::SendRegisterRequest(const std::string& username, const std:
     sf::Packet packet;
     packet << static_cast<short>(PacketType::REGISTER_REQUEST);
     packet << registerRequestData;
+    m_socket.send(packet);
+}
+
+void NetworkManager::SendRankingRequest(const std::string& username)
+{
+    RankingRequestData requestData;
+    requestData.username = username;
+
+    sf::Packet packet;
+    packet << static_cast<short>(PacketType::RANKING_REQUEST);
+    packet << requestData;
     m_socket.send(packet);
 }
 
@@ -436,4 +449,12 @@ void NetworkManager::HandleRegisterResponse(sf::Packet& packet)
 {
     RegisterResponseData registerResponseData;
     packet >> registerResponseData;
+}
+
+void NetworkManager::HandleRankingResponse(sf::Packet& packet)
+{
+    RankingResponseData responseData;
+    packet >> responseData;
+    m_clientState.ranking = responseData.entries;
+    std::cout << "[CLIENT] Ranking recibido: " << responseData.entries.size() << " entradas" << std::endl;
 }

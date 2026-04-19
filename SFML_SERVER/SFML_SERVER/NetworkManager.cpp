@@ -107,9 +107,11 @@ void NetworkManager::ProcessPacket(ConnectedClient& client, sf::Packet& packet)
     case PacketType::CREATE_ROOM_REQUEST:
         HandleCreateRoomRequest(client, packet);
         break;
-
     case PacketType::JOIN_ROOM_REQUEST:
         HandleJoinRoomRequest(client, packet);
+        break;
+    case PacketType::RANKING_REQUEST:
+        HandleRankingRequest(client, packet);
         break;
     case PacketType::ENDGAME:
         HandleEndGame(client, packet);
@@ -229,6 +231,23 @@ void NetworkManager::HandleEndGame(ConnectedClient& client, sf::Packet& packet)
     packet >> resultData;
     for (const Result& r : resultData.results)
         DC.UpdateScore(r);
+}
+
+void NetworkManager::HandleRankingRequest(ConnectedClient& client, sf::Packet& packet)
+{
+    RankingRequestData rankingRequestData;
+    packet >> rankingRequestData;
+
+    std::vector<RankingData> dbRanking = DC.GetRanking(rankingRequestData.username);
+
+    RankingResponseData response;
+    for (int i = 0; i < dbRanking.size(); i++)
+        response.entries.push_back(dbRanking[i]);
+
+    sf::Packet responsePacket;
+    responsePacket << static_cast<short>(PacketType::RANKING_RESPONSE);
+    responsePacket << response;
+    client.socket->send(responsePacket);
 }
 
 
