@@ -296,10 +296,28 @@ void GameManager::CheckGameOver()
             if (grid[x][y] == 0) boardFull = false;
 
     
-    if (spectators >= 3 || boardFull)
+    if (spectators >= (int)players.size() - 1 || boardFull)
     {
         std::cout << "=== GAME OVER ===" << std::endl;
         isGameOver = true;
+        GameResultData resultData;
+        for (int i = 0; i < players.size(); i++) {
+            Result r;
+            r.username = players[i].nickName;
+            r.scoredPoints = -5;
+            for (int j = 0; j < victoryOrder.size(); j++)
+            {
+                if (victoryOrder[j] == players[i].id) {
+                    r.scoredPoints = 20;
+                    break;
+                }
+            }
+            resultData.results.push_back(r);
+        }
+        sf::Packet packet;
+        packet << static_cast<short>(PacketType::ENDGAME);
+        packet << resultData;
+        NM.SendToServer(packet);
         SM.SetNextScene("LobbyScene");
     }
 }

@@ -5,7 +5,6 @@
 #include <vector>
 #include "PacketTypes.h"
 
-
 // Datos de Login
 struct LoginRequestData
 {
@@ -92,13 +91,25 @@ struct StartGameData
     std::vector<LobbyPlayerInfo> players;
 };
 
-// Error genérico
+struct Result {
+    std::string username;
+    int scoredPoints = 0;
+};
+struct GameResultData {
+    std::vector<Result> results;
+};
+sf::Packet& operator<<(sf::Packet& packet, const Result& data);
+sf::Packet& operator>>(sf::Packet& packet, Result& data);
+sf::Packet& operator<<(sf::Packet& packet, const GameResultData& data);
+sf::Packet& operator>>(sf::Packet& packet, GameResultData& data);
+
+// Error generico
 struct ErrorMessageData
 {
     std::string message;
 };
 
-// Serializacion de LobbyPlayerInfo
+// LobbyPlayerInfo
 inline sf::Packet& operator<<(sf::Packet& packet, const LobbyPlayerInfo& data)
 {
     packet << data.playerId
@@ -119,22 +130,20 @@ inline sf::Packet& operator>>(sf::Packet& packet, LobbyPlayerInfo& data)
     return packet;
 }
 
-// Serializacion LoginRequestData
+// LoginRequestData
 inline sf::Packet& operator<<(sf::Packet& packet, const LoginRequestData& data)
 {
-    packet << data.username
-        << data.password;
+    packet << data.username << data.password;
     return packet;
 }
 
 inline sf::Packet& operator>>(sf::Packet& packet, LoginRequestData& data)
 {
-    packet >> data.username
-        >> data.password;
+    packet >> data.username >> data.password;
     return packet;
 }
 
-// Serializacion LoginResponseData
+// LoginResponseData
 inline sf::Packet& operator<<(sf::Packet& packet, const LoginResponseData& data)
 {
     packet << data.success
@@ -155,175 +164,85 @@ inline sf::Packet& operator>>(sf::Packet& packet, LoginResponseData& data)
     return packet;
 }
 
-// Serializacion RegisterRequestData
+// RegisterRequestData
 inline sf::Packet& operator<<(sf::Packet& packet, const RegisterRequestData& data)
 {
-    packet << data.username
-        << data.password;
+    packet << data.username << data.password;
     return packet;
 }
 
 inline sf::Packet& operator>>(sf::Packet& packet, RegisterRequestData& data)
 {
-    packet >> data.username
-        >> data.password;
+    packet >> data.username >> data.password;
     return packet;
 }
 
-// Serializacion RegisterResponseData
+// RegisterResponseData
 inline sf::Packet& operator<<(sf::Packet& packet, const RegisterResponseData& data)
 {
-    packet << data.success
-        << data.message;
+    packet << data.success << data.message;
     return packet;
 }
 
 inline sf::Packet& operator>>(sf::Packet& packet, RegisterResponseData& data)
 {
-    packet >> data.success
-        >> data.message;
+    packet >> data.success >> data.message;
     return packet;
 }
 
-// Serializacion CreateRoomRequestData
+// CreateRoomRequestData
 inline sf::Packet& operator<<(sf::Packet& packet, const CreateRoomRequestData& data)
 {
-    packet << data.roomId
-        << data.username
-        << data.gamePort;
+    packet << data.roomId << data.username << data.gamePort;
     return packet;
 }
 
 inline sf::Packet& operator>>(sf::Packet& packet, CreateRoomRequestData& data)
 {
-    packet >> data.roomId
-        >> data.username
-        >> data.gamePort;
+    packet >> data.roomId >> data.username >> data.gamePort;
     return packet;
 }
 
-// Serializacion CreateRoomResponseData
+// CreateRoomResponseData
 inline sf::Packet& operator<<(sf::Packet& packet, const CreateRoomResponseData& data)
 {
-    packet << data.success
-        << data.roomId
-        << data.message;
+    packet << data.success << data.roomId << data.message;
     return packet;
 }
 
 inline sf::Packet& operator>>(sf::Packet& packet, CreateRoomResponseData& data)
 {
-    packet >> data.success
-        >> data.roomId
-        >> data.message;
+    packet >> data.success >> data.roomId >> data.message;
     return packet;
 }
 
-// Serializacion JoinRoomRequestData
+// JoinRoomRequestData
 inline sf::Packet& operator<<(sf::Packet& packet, const JoinRoomRequestData& data)
 {
-    packet << data.roomId
-        << data.username
-        << data.gamePort;
+    packet << data.roomId << data.username << data.gamePort;
     return packet;
 }
 
 inline sf::Packet& operator>>(sf::Packet& packet, JoinRoomRequestData& data)
 {
-    packet >> data.roomId
-        >> data.username
-        >> data.gamePort;
+    packet >> data.roomId >> data.username >> data.gamePort;
     return packet;
 }
 
-// Serializacion JoinRoomResponseData
+// JoinRoomResponseData
 inline sf::Packet& operator<<(sf::Packet& packet, const JoinRoomResponseData& data)
 {
-    packet << data.success
-        << data.roomId
-        << data.message;
+    packet << data.success << data.roomId << data.message;
     return packet;
 }
 
 inline sf::Packet& operator>>(sf::Packet& packet, JoinRoomResponseData& data)
 {
-    packet >> data.success
-        >> data.roomId
-        >> data.message;
+    packet >> data.success >> data.roomId >> data.message;
     return packet;
 }
 
-// Serializacion RoomStatusUpdateData
-inline sf::Packet& operator<<(sf::Packet& packet, const RoomStatusUpdateData& data)
-{
-    packet << data.roomId
-        << data.currentPlayers
-        << data.maxPlayers;
-
-    packet << static_cast<int>(data.players.size());
-    for (const LobbyPlayerInfo& player : data.players)
-    {
-        packet << player;
-    }
-
-    return packet;
-}
-
-inline sf::Packet& operator>>(sf::Packet& packet, RoomStatusUpdateData& data)
-{
-    int playerCount = 0;
-
-    packet >> data.roomId
-        >> data.currentPlayers
-        >> data.maxPlayers
-        >> playerCount;
-
-    data.players.clear();
-    data.players.resize(playerCount);
-
-    for (int i = 0; i < playerCount; ++i)
-    {
-        packet >> data.players[i];
-    }
-
-    return packet;
-}
-
-// Serializacion StartGameData
-inline sf::Packet& operator<<(sf::Packet& packet, const StartGameData& data)
-{
-    packet << data.roomId
-        << data.playerCount;
-
-    packet << static_cast<int>(data.players.size());
-    for (const LobbyPlayerInfo& player : data.players)
-    {
-        packet << player;
-    }
-
-    return packet;
-}
-
-inline sf::Packet& operator>>(sf::Packet& packet, StartGameData& data)
-{
-    int vectorSize = 0;
-
-    packet >> data.roomId
-        >> data.playerCount
-        >> vectorSize;
-
-    data.players.clear();
-    data.players.resize(vectorSize);
-
-    for (int i = 0; i < vectorSize; ++i)
-    {
-        packet >> data.players[i];
-    }
-
-    return packet;
-}
-
-// Serializacion ErrorMessageData
+// ErrorMessageData
 inline sf::Packet& operator<<(sf::Packet& packet, const ErrorMessageData& data)
 {
     packet << data.message;
@@ -335,3 +254,10 @@ inline sf::Packet& operator>>(sf::Packet& packet, ErrorMessageData& data)
     packet >> data.message;
     return packet;
 }
+
+
+sf::Packet& operator<<(sf::Packet& packet, const RoomStatusUpdateData& data);
+sf::Packet& operator>>(sf::Packet& packet, RoomStatusUpdateData& data);
+
+sf::Packet& operator<<(sf::Packet& packet, const StartGameData& data);
+sf::Packet& operator>>(sf::Packet& packet, StartGameData& data);

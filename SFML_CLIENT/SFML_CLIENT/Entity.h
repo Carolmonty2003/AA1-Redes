@@ -26,10 +26,5 @@ public:
 	inline void SetRenderer(Renderer* r) { renderer = r; }
 	inline Renderer* GetRenderer() const { return renderer; }
 
-	virtual void Update(float dt)
-	{
-		if (renderer) {
-			renderer->Update(dt);
-		}
-	}
+	virtual void Update(float dt);
 };

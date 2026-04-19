@@ -32,10 +32,6 @@ private:
     /// gy Fila 
     void BroadcastMove(int gx, int gy, int playerID);
 
-    
-    
-
-   
     void HandlePeerDisconnection(sf::TcpSocket* socket);
 
     int GetPlayerIndexBySocket(sf::TcpSocket* socket) const;
@@ -46,23 +42,17 @@ public:
 
     GameManager();
 
-   
-    void InitGame(const std::vector<Player>& connectedPlayers,
-                  int localID);
+    void InitGame(const std::vector<Player>& connectedPlayers, int localID);
 
-    
     void Update(float dt);
-
    
     void TryPlacePieceScreen(float mouseX, float mouseY);
-
  
     bool TryPlacePieceGrid(int gx, int gy, int playerIndex);
 
     void ReceiveNetworkMoves();
   
     bool CheckWin(int gx, int gy, int playerID);
-
    
     void AdvanceTurn();
 
@@ -70,10 +60,8 @@ public:
     void BroadcastNextTurn(int nextPlayerID);
 
     void CheckGameOver();
-
    
     void DrawGrid(sf::RenderWindow& window);
-
    
     void DrawHUD(sf::RenderWindow& window);
 };

@@ -44,15 +44,21 @@ bool DatabaseConnector::LoginPlayer(LoginRequestData lrd)
 		sql::PreparedStatement* pstmt = con->prepareStatement("CALL LoginPlayer( ?, ? )");
 		pstmt->setString(1, lrd.username);
 		pstmt->setString(2, lrd.password);
-		pstmt->execute();
-		sql::ResultSet* res = pstmt->getResultSet();
+		sql::ResultSet* res = pstmt->executeQuery();
 		bool savedResult = res->next();
 		if(savedResult)
 			std::cout << "[SERVER] " << lrd.username  << " login succeed" << std::endl;
 		else
 			std::cout << "[SERVER] " << lrd.username << " login failed" << std::endl;
 		delete res;
+		
+		// Consumir resultados las stored procedure
+		while(pstmt->getMoreResults()) {
+			sql::ResultSet* extraRes = pstmt->getResultSet();
+			if(extraRes) delete extraRes;
+		}
 		delete pstmt;
+		
 		return savedResult;
 	}
 	catch (sql::SQLException& e) {
@@ -68,6 +74,30 @@ void  DatabaseConnector::AddPlayer(RegisterRequestData rrd)
 		pstmt->setString(1, rrd.username);
 		pstmt->setString(2, rrd.password);
 		pstmt->execute();
+		
+		while(pstmt->getMoreResults()) {
+			sql::ResultSet* extraRes = pstmt->getResultSet();
+			if(extraRes) delete extraRes;
+		}
+		delete pstmt;
+	}
+	catch (sql::SQLException& e) {
+		std::cout << "AddPlayer error: " << e.what() << std::endl;
+	}
+}
+
+void DatabaseConnector::UpdateScore(Result r)
+{
+	try {
+		sql::PreparedStatement* pstmt = con->prepareStatement("CALL UpdateScore( ?, ? )");
+		pstmt->setString(1, r.username);
+		pstmt->setInt(2, r.scoredPoints);
+		pstmt->execute();
+		while (pstmt->getMoreResults()) {
+			sql::ResultSet* extraRes = pstmt->getResultSet();
+			if (extraRes)
+				delete extraRes;
+		}
 		delete pstmt;
 	}
 	catch (sql::SQLException& e) {
@@ -80,6 +110,12 @@ void DatabaseConnector::DeletePlayer()
 	sql::PreparedStatement* pstmt = con->prepareStatement("CALL DeletePlayer(?)");
 	pstmt->setInt(1, 5);
 	pstmt->execute();
+	
+	while(pstmt->getMoreResults()) {
+		sql::ResultSet* extraRes = pstmt->getResultSet();
+		if(extraRes) delete extraRes;
+	}
+	delete pstmt;
 }
 
 void DatabaseConnector::PrintRanking()
@@ -90,5 +126,30 @@ void DatabaseConnector::PrintRanking()
 	while (res->next())
 		std::cout << res->getString("Username") << " - Score: " << res->getInt("Score") << std::endl;
 	delete res;
+	
+	while(pstmt->getMoreResults()) {
+		sql::ResultSet* extraRes = pstmt->getResultSet();
+		if(extraRes) delete extraRes;
+	}
 	delete pstmt;
+}
+
+void DatabaseConnector::UpdatePlayerScore(int playerId, int scoreDiff)
+{
+	try {
+        // En lugar de usar la stored procedure UpdateScore (que tiene el bug de Id = Id), 
+        // hacemos la query pura para asegurarnos del correcto update en DB.
+		sql::PreparedStatement* pstmt = con->prepareStatement(
+			"UPDATE players SET Score = GREATEST(0, CAST(Score AS SIGNED) + ?) WHERE Id = ?"
+		);
+		pstmt->setInt(1, scoreDiff);
+		pstmt->setInt(2, playerId);
+		pstmt->execute();
+		
+		std::cout << "[SERVER] BD: Player " << playerId << " score actualizado con " << scoreDiff << " puntos." << std::endl;
+        delete pstmt;
+	}
+	catch (sql::SQLException& e) {
+		std::cout << "[SERVER] UpdatePlayerScore error: " << e.what() << std::endl;
+	}
 }

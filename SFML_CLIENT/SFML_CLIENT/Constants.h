@@ -1,0 +1,87 @@
+#pragma once
+#include <SFML/Graphics/Color.hpp>
+
+namespace Config
+{
+    namespace Window
+    {
+        const int  WIDTH = 800;
+        const int  HEIGHT = 600;
+        inline const char* NAME = "Conecta3 Cliente";
+        const int  FPS = 60;
+    }
+
+    namespace Connection
+    {
+        inline const char* SERVER_IP = "83.41.62.11";
+        const unsigned short SERVER_PORT = 55000;
+        const unsigned short GAME_PORT = 56000;
+
+    }
+
+    namespace Assets
+    {
+        inline const char* FONT_PATH = "assets/arial.ttf";
+        inline const char* FONT_PATH_FALLBACK = "C:/Windows/Fonts/arial.ttf";
+    }
+
+    namespace Game
+    {
+        const short   GRID_COLUMNS = 6;
+        const short   GRID_ROWS = 6;
+        const short   CELL_SIZE = 90;
+        const float MAX_TURN_TIME = 20.0f;
+        const int   DEFAULT_SCORE = 1000;
+        inline const char* DEFAULT_ROOM = "test_room";
+    }
+
+    namespace UI
+    {
+        const short  FONT_SIZE_SMALL = 16;
+        const short  FONT_SIZE_NORMAL = 18;
+        const short  FONT_SIZE_MEDIUM = 20;
+        const short  FONT_SIZE_TITLE = 40;
+        const float TEXT_PADDING = 5.f;
+        inline const sf::Color  COLOR_BACKGROUND{ 30,  30,  30 };
+        inline const sf::Color  COLOR_CELL_EMPTY{ 50,  50,  50 };
+        inline const sf::Color  COLOR_TEXT_DEFAULT = sf::Color::White;
+        inline const sf::Color  COLOR_TEXT_ACCENT = sf::Color::Cyan;
+    }
+
+    namespace Login
+    {
+        const float INPUT_USERNAME_X = 250.f;
+        const float INPUT_USERNAME_Y = 220.f;
+        const float INPUT_PASSWORD_X = 250.f;
+        const float INPUT_PASSWORD_Y = 250.f;
+        const float INPUT_WIDTH = 300.f;
+        const float INPUT_HEIGHT = 25.f;
+        const float LOGIN_BUTTON_X = 350.f;
+        const float LOGIN_BUTTON_Y = 280.f;
+        const float REGISTER_BUTTON_X = 350.f;
+        const float REGISTER_BUTTON_Y = 310.f;
+        const float BUTTON_WIDTH = 100.f;
+        const float BUTTON_HEIGHT = 25.f;
+        const float CLOSE_BUTTON_SIZE = 64.f;
+    }
+
+    namespace Lobby
+    {
+        const float TITLE_X = 200.f;
+        const float TITLE_Y = 200.f;
+        const float SUBTITLE_X = 200.f;
+        const float SUBTITLE_Y = 300.f;
+		const float INPUT_X = 250.f;
+		const float INPUT_Y = 180.f;
+		const float INPUT_WIDTH = 300.f;
+		const float INPUT_HEIGHT = 40.f;
+		const float CREATE_BUTTON_X = 250.f;
+		const float CREATE_BUTTON_Y = 250.f;
+		const float BUTTON_WIDTH = 140.f;
+		const float BUTTON_HEIGHT = 45.f;
+        const float STATUS_X = 120.f;
+        const float STATUS_Y = 320.f;
+        const float ROOM_INFO_X = 120.f;
+        const float ROOM_INFO_Y = 320.f;
+    }
+}

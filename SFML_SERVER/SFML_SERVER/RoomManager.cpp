@@ -12,7 +12,7 @@ bool RoomManager::CreateRoom(const std::string& roomId, int creatorPlayerId)
     newRoom.roomId = roomId;
     newRoom.playerIds.push_back(creatorPlayerId);
     newRoom.inGame = false;
-    newRoom.maxPlayers = 4;
+    newRoom.maxPlayers = 2;
 
     m_rooms.push_back(newRoom);
 

@@ -8,6 +8,11 @@ NetworkManager::NetworkManager()
 
 bool NetworkManager::ConnectToServer()
 {
+    if (m_isConnected)
+    {
+        std::cout << "Ya conectado al servidor" << std::endl;
+        return true;
+    }
     return Connect(SERVER_IP, SERVER_PORT);
 }
 
@@ -19,6 +24,63 @@ void NetworkManager::DisconnectFromServer()
 void NetworkManager::NetworkFetch()
 {
     ReceiveData();
+}
+
+void NetworkManager::ReceiveData()
+{
+    if (!m_isConnected)
+    {
+        return;
+    }
+
+    sf::Packet packet;
+    sf::Socket::Status status = m_socket.receive(packet);
+
+    while (status == sf::Socket::Status::Done)
+    {
+        ProcessPacket(packet);
+
+        packet.clear();
+        status = m_socket.receive(packet);
+    }
+
+    if (status == sf::Socket::Status::Disconnected)
+    {
+        std::cout << "[CLIENT] El servidor ha cerrado la conexion." << std::endl;
+        m_isConnected = false;
+    }
+
+    AcceptPeerConnections();
+}
+
+bool NetworkManager::StartP2PListener(unsigned short port)
+{
+    if (listener == nullptr) {
+        listener = new sf::TcpListener();
+    }
+    
+    if (listener->listen(port) != sf::Socket::Status::Done) {
+        std::cerr << "[CLIENT-P2P] Error al crear listener P2P en puerto " << port << std::endl;
+        return false;
+    }
+    
+    listener->setBlocking(false);
+    std::cout << "[CLIENT-P2P] Escuchando conexiones P2P en el puerto " << port << std::endl;
+    return true;
+}
+
+void NetworkManager::AcceptPeerConnections()
+{
+    if (listener == nullptr) return;
+
+    auto newSocket = std::make_unique<sf::TcpSocket>();
+    newSocket->setBlocking(false);
+
+    if (listener->accept(*newSocket) == sf::Socket::Status::Done)
+    {
+        std::cout << "[CLIENT-P2P] Un peer (rival) se ha conectado!" << std::endl;
+        m_gameConnections.push_back(std::move(newSocket));
+    }
 }
 
 void NetworkManager::AddConnection(const std::string& ip, unsigned short port)
@@ -164,30 +226,7 @@ void NetworkManager::SendJoinRoomRequest(const std::string& roomId, const std::s
     }
 }
 
-void NetworkManager::ReceiveData()
-{
-    if (!m_isConnected)
-    {
-        return;
-    }
 
-    sf::Packet packet;
-    sf::Socket::Status status = m_socket.receive(packet);
-
-    while (status == sf::Socket::Status::Done)
-    {
-        ProcessPacket(packet);
-
-        packet.clear();
-        status = m_socket.receive(packet);
-    }
-
-    if (status == sf::Socket::Status::Disconnected)
-    {
-        std::cout << "[CLIENT] El servidor ha cerrado la conexion." << std::endl;
-        m_isConnected = false;
-    }
-}
 
 bool NetworkManager::IsConnected() const
 {
@@ -273,6 +312,13 @@ void NetworkManager::SendRegisterRequest(const std::string& username, const std:
     sf::Packet packet;
     packet << static_cast<short>(PacketType::REGISTER_REQUEST);
     packet << registerRequestData;
+    m_socket.send(packet);
+}
+
+void NetworkManager::NotifyPlayerWin(const std::string& username)
+{
+    sf::Packet packet;
+    packet << static_cast<short>(PacketType::ENDGAME);
     m_socket.send(packet);
 }
 

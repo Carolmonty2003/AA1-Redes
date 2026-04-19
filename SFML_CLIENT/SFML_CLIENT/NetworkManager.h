@@ -37,6 +37,8 @@ public:
     ClientState& GetClientState();
 
     // --- Conexiones P2P (juego) ---
+    bool StartP2PListener(unsigned short port);
+    void AcceptPeerConnections();
     void AddConnection(const std::string& ip, unsigned short port);
     void SendToAllConnections(sf::Packet& packet);
     const std::vector<std::unique_ptr<sf::TcpSocket>>& GetConnections() const;
@@ -45,6 +47,7 @@ public:
     void SendToServer(sf::Packet& packet);
     void SendLoginRequest(const std::string& username, const std::string& password);
     void SendRegisterRequest(const std::string& username, const std::string& password);
+    void NotifyPlayerWin(const std::string& username);
 
 private:
     NetworkManager();
@@ -59,6 +62,8 @@ private:
     void HandleErrorMessage(sf::Packet& packet);
     void HandleLoginResponse(sf::Packet& packet);
     void HandleRegisterResponse(sf::Packet& packet);
+
+
 
     sf::TcpSocket m_socket;
     bool m_isConnected;
