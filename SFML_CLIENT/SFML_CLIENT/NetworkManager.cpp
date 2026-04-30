@@ -78,14 +78,14 @@ void NetworkManager::AcceptPeerConnections()
     }
 }
 
-void NetworkManager::AddConnection(const std::string& ip, unsigned short port)
+bool NetworkManager::AddConnection(const std::string& ip, unsigned short port)
 {
     auto newSocket = std::make_unique<sf::TcpSocket>();
     auto address = sf::IpAddress::resolve(ip);
     if (!address)
     {
         std::cerr << "[CLIENT] IP invalida: " << ip << std::endl;
-        return;
+        return false;
     }
 
     if (newSocket->connect(*address, port) == sf::Socket::Status::Done)
@@ -93,10 +93,12 @@ void NetworkManager::AddConnection(const std::string& ip, unsigned short port)
         std::cout << "[CLIENT] Conectado al rival " << ip << ":" << port << std::endl;
         newSocket->setBlocking(false);
         m_gameConnections.push_back(std::move(newSocket));
+        return true;
     }
     else
     {
         std::cerr << "[CLIENT] Error al conectar con el rival " << ip << ":" << port << std::endl;
+        return false;
     }
 }
 

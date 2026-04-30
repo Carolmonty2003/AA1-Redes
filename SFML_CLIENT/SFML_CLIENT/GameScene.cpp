@@ -33,6 +33,9 @@ void GameScene::OnEnter()
 
     SetupGame(gamePlayers, state.playerId);
 
+    if (myIndex == -1)
+        return;
+
     // Iniciar listener P2P
     NM.StartP2PListener(state.roomPlayers[myIndex].gamePort);
 
