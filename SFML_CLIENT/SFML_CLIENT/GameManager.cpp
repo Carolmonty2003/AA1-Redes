@@ -203,6 +203,15 @@ void GameManager::SyncNextTurn(int nextPlayerID)
     {
         if (players[i].id == nextPlayerID)
         {
+            // No habilitar el turno de un jugador desconectado/espectador. La autoridad
+            // solo difunde NEXT_TURN de jugadores activos, asi que un NEXT_TURN hacia un
+            // espectador es obsoleto: lo ignoramos para no "resucitar" su turno.
+            if (players[i].isSpectator)
+            {
+                std::cout << "Ignorado NEXT_TURN hacia espectador: " << players[i].nickName << std::endl;
+                return;
+            }
+
             if (currentTurnIndex != i)
             {
                 currentTurnIndex = i;
@@ -218,6 +227,7 @@ void GameManager::TryPlacePieceScreen(float mouseX, float mouseY)
 {
     if (isGameOver || players.empty()) return;
     if (players[currentTurnIndex].id != localPlayerID) return;
+    if (players[currentTurnIndex].isSpectator) return; // un espectador/desconectado no coloca
 
     float offsetX = (Config::Window::WIDTH - (Config::Game::GRID_COLUMNS * Config::Game::CELL_SIZE)) / 2.f;
     float offsetY = (Config::Window::HEIGHT - (Config::Game::GRID_ROWS * Config::Game::CELL_SIZE)) / 2.f;
@@ -245,7 +255,11 @@ bool GameManager::TryPlacePieceGrid(int gx, int gy, int playerIndex)
     // Send to plaayers if it's my turn
     if (playerID == localPlayerID) BroadcastMove(gx, gy, playerID);
 
-    if (CheckWin(gx, gy, playerID))
+    // Si esta ficha llena el tablero, la partida acaba en EMPATE: no se corona a
+    // quien coloca la ultima ficha aunque forme linea.
+    const bool boardFull = IsBoardFull();
+
+    if (!boardFull && CheckWin(gx, gy, playerID))
     {
         players[playerIndex].isSpectator = true;
         victoryOrder.push_back(playerID);
@@ -289,17 +303,18 @@ bool GameManager::CheckWin(int gx, int gy, int playerID)
     return false;
 }
 
+bool GameManager::IsBoardFull() const
+{
+    for (int x = 0; x < Config::Game::GRID_COLUMNS; x++)
+        for (int y = 0; y < Config::Game::GRID_ROWS; y++)
+            if (grid[x][y] == 0) return false;
+    return true;
+}
+
 void GameManager::AdvanceTurn()
 {
-    // Check if board is full
-    bool boardFull = true;
-    for (int x = 0; x < Config::Game::GRID_COLUMNS; x++) {
-        for (int y = 0; y < Config::Game::GRID_ROWS; y++) {
-            if (grid[x][y] == 0) boardFull = false;
-        }
-    }
-
-    if (boardFull) {
+    // Si el tablero esta lleno, no hay turno que dar: la partida termina.
+    if (IsBoardFull()) {
         std::cout << "Draw! Board is full." << std::endl;
         CheckGameOver();
         return;
@@ -328,12 +343,8 @@ void GameManager::CheckGameOver()
     int spectators = 0;
     for (const auto& p : players) if (p.isSpectator) spectators++;
 
-    bool boardFull = true;
-    for (int x = 0; x < Config::Game::GRID_COLUMNS; x++)
-        for (int y = 0; y < Config::Game::GRID_ROWS; y++)
-            if (grid[x][y] == 0) boardFull = false;
+    const bool boardFull = IsBoardFull();
 
-    
     if (spectators >= (int)players.size() - 1 || boardFull)
     {
         std::cout << "=== GAME OVER ===" << std::endl;

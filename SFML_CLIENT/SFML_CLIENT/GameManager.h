@@ -26,6 +26,9 @@ private:
     // (PLAYER_DISCONNECTED) y avanza el turno si era el suyo.
     void MarkPlayerDisconnected(int playerIndex);
 
+    // True si no queda ninguna casilla vacia en el tablero.
+    bool IsBoardFull() const;
+
 public:
     
     std::vector<std::vector<short>> grid;
