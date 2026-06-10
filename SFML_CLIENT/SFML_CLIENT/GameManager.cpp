@@ -53,12 +53,22 @@ void GameManager::Update(float dt)
 
     if (isGameOver || players.empty()) return;
 
-    // Simple turn timer logic
+    // Simple turn timer logic.
+    // Solo el jugador ACTIVO decide su propio timeout y avisa al resto con NEXT_TURN.
+    // Los demas clientes solo muestran la cuenta atras; no avanzan por su cuenta
+    // (si lo hicieran, el turno se desincronizaria al cerrar el ciclo de jugadores).
     turnTimer -= dt;
     if (turnTimer <= 0.0f)
     {
-        std::cout << "Time out for " << players[currentTurnIndex].nickName << std::endl;
-        AdvanceTurn();
+        if (players[currentTurnIndex].id == localPlayerID)
+        {
+            std::cout << "Time out: paso mi turno automaticamente." << std::endl;
+            AdvanceTurn();
+        }
+        else
+        {
+            turnTimer = 0.0f; // Espera el NEXT_TURN del jugador activo
+        }
     }
 }
 
@@ -229,10 +239,15 @@ bool GameManager::TryPlacePieceGrid(int gx, int gy, int playerIndex)
         players[playerIndex].isSpectator = true;
         victoryOrder.push_back(playerID);
         std::cout << "!!! " << players[playerIndex].nickName << " WON!" << std::endl;
-        CheckGameOver();
     }
 
-    if (!isGameOver) AdvanceTurn();
+    // Comprobar fin de partida (victoria final o tablero lleno) en TODOS los clientes,
+    // no solo en el que avanza el turno.
+    CheckGameOver();
+
+    // Solo el jugador que ha movido avanza el turno y difunde NEXT_TURN (es la autoridad).
+    // El resto aplican la jugada y esperan ese paquete para sincronizarse via SyncNextTurn.
+    if (!isGameOver && playerID == localPlayerID) AdvanceTurn();
     return true;
 }
 
@@ -297,6 +312,8 @@ void GameManager::AdvanceTurn()
 
 void GameManager::CheckGameOver()
 {
+    if (isGameOver) return; // Evita re-ejecutar el fin de partida (ENDGAME / cambio de escena)
+
     int spectators = 0;
     for (const auto& p : players) if (p.isSpectator) spectators++;
 
