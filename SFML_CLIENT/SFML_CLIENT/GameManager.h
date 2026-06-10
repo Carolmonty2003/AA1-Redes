@@ -22,9 +22,10 @@ private:
     /// gy Fila
     void BroadcastMove(int gx, int gy, int playerID);
 
-    // Marca a un jugador como desconectado/espectador, avisa al resto de peers
-    // (PLAYER_DISCONNECTED) y avanza el turno si era el suyo.
-    void MarkPlayerDisconnected(int playerIndex);
+    // Marca a un jugador como desconectado/espectador y avanza el turno si era el suyo.
+    // announce=true cuando lo hemos detectado nosotros (difunde PLAYER_DISCONNECTED);
+    // announce=false cuando ya nos lo han avisado por red.
+    void OnPlayerDisconnected(int playerIndex, bool announce);
 
     // True si no queda ninguna casilla vacia en el tablero.
     bool IsBoardFull() const;

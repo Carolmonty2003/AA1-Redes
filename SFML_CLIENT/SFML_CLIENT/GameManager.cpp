@@ -78,7 +78,7 @@ void GameManager::Update(float dt)
         {
             std::cout << players[goneIndex].nickName
                 << " no responde en su turno: se le da por desconectado." << std::endl;
-            MarkPlayerDisconnected(goneIndex);
+            OnPlayerDisconnected(goneIndex, true);
         }
         else
         {
@@ -132,16 +132,14 @@ void GameManager::ReceiveNetworkMoves()
 
                 for (int i = 0; i < (int)players.size(); i++)
                 {
-                    if (players[i].id == disconnectedID && !players[i].isSpectator)
+                    if (players[i].id == disconnectedID)
                     {
-                        players[i].isSpectator = true;
-                        std::cout << players[i].nickName << " desconectado (avisado por un peer)." << std::endl;
+                        // Ya nos lo han avisado: no re-anunciar. Si era su turno,
+                        // OnPlayerDisconnected avanza al siguiente jugador activo.
+                        OnPlayerDisconnected(i, false);
                         break;
                     }
                 }
-                CheckGameOver();
-                // El turno lo mueve quien detecto la desconexion (envia NEXT_TURN);
-                // aqui solo marcamos al jugador como espectador.
             }
             else if (packetType == PacketType::NEXT_TURN)
             {
@@ -160,23 +158,28 @@ void GameManager::ReceiveNetworkMoves()
     }
 }
 
-void GameManager::MarkPlayerDisconnected(int playerIndex)
+void GameManager::OnPlayerDisconnected(int playerIndex, bool announce)
 {
     if (playerIndex < 0 || playerIndex >= (int)players.size()) return;
-    if (players[playerIndex].isSpectator) return;
+    if (players[playerIndex].isSpectator) return; // ya gestionado
 
     players[playerIndex].isSpectator = true;
-    std::cout << players[playerIndex].nickName << " marcado como desconectado." << std::endl;
+    std::cout << players[playerIndex].nickName << " desconectado." << std::endl;
 
-    // Avisar al resto de peers para que tambien lo marquen como espectador.
-    sf::Packet notify;
-    notify << (int)PacketType::PLAYER_DISCONNECTED << players[playerIndex].id;
-    NM.SendToAllConnections(notify);
+    // Si lo hemos detectado nosotros, avisamos al resto de peers.
+    if (announce)
+    {
+        sf::Packet notify;
+        notify << (int)PacketType::PLAYER_DISCONNECTED << players[playerIndex].id;
+        NM.SendToAllConnections(notify);
+    }
 
     // La partida puede terminar si solo queda un jugador activo.
     CheckGameOver();
 
-    // Si era su turno, avanzamos al siguiente (AdvanceTurn difunde NEXT_TURN).
+    // Si era su turno, avanzamos al siguiente jugador activo (AdvanceTurn difunde NEXT_TURN).
+    // Todos los clientes parten del mismo currentTurnIndex y calculan el mismo siguiente,
+    // por lo que el avance es consistente (los NEXT_TURN redundantes son idempotentes).
     if (!isGameOver && playerIndex == currentTurnIndex)
     {
         AdvanceTurn();

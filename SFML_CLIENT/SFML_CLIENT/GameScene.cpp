@@ -57,6 +57,14 @@ void GameScene::OnEnter()
 }
 
 void GameScene::HandleEvent(const sf::Event& event) {
+    if (event.is<sf::Event::Closed>())
+    {
+        // Cerramos en plena partida: avisamos a los peers de que nos vamos, sea el
+        // turno de quien sea, para que la partida continue sin nosotros.
+        NM.NotifyP2PDisconnect();
+        return;
+    }
+
     if (event.is<sf::Event::MouseButtonPressed>())
     {
         const sf::Event::MouseButtonPressed* mbInfo =

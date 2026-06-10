@@ -44,6 +44,8 @@ public:
     const std::vector<std::unique_ptr<sf::TcpSocket>>& GetConnections() const;
     std::vector<std::unique_ptr<sf::TcpSocket>>& GetConnections();
     void ClearConnections();
+    // Avisa a los peers (PLAYER_DISCONNECTED propio) de que nos vamos. No-op si no hay P2P.
+    void NotifyP2PDisconnect();
     void SendToServer(sf::Packet& packet);
     void SendLoginRequest(const std::string& username, const std::string& password);
     void SendRegisterRequest(const std::string& username, const std::string& password);
