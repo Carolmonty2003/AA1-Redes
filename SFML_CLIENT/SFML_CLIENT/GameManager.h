@@ -18,13 +18,13 @@ private:
     sf::Font font;
     int localPlayerID = 1;
 
-    /// gx Columna 
-    /// gy Fila 
+    /// gx Columna
+    /// gy Fila
     void BroadcastMove(int gx, int gy, int playerID);
 
-    void HandlePeerDisconnection(sf::TcpSocket* socket);
-
-    int GetPlayerIndexBySocket(sf::TcpSocket* socket) const;
+    // Marca a un jugador como desconectado/espectador, avisa al resto de peers
+    // (PLAYER_DISCONNECTED) y avanza el turno si era el suyo.
+    void MarkPlayerDisconnected(int playerIndex);
 
 public:
     

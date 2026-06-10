@@ -483,6 +483,8 @@ void NetworkManager::RemoveDisconnectedClient(int index)
     }
 
     int playerId = m_clients[index].playerId;
+    // Guardamos la sala ANTES de borrar al cliente para avisar a los que quedan.
+    std::string roomId = m_clients[index].currentRoomId;
 
     m_roomManager.RemovePlayerFromRoom(playerId);
 
@@ -497,6 +499,15 @@ void NetworkManager::RemoveDisconnectedClient(int index)
     }
 
     m_clients.erase(m_clients.begin() + index);
+
+    // Si el jugador estaba en una sala que sigue existiendo (no se ha vaciado),
+    // avisamos a los jugadores restantes con el roster actualizado. Asi la sala
+    // continua y NO se cae para todos porque uno se haya ido.
+    if (!roomId.empty() && m_roomManager.GetRoom(roomId) != nullptr)
+    {
+        BroadcastRoomStatus(roomId);
+    }
+
     PrintConnectedClients();
     m_roomManager.PrintRooms();
 }

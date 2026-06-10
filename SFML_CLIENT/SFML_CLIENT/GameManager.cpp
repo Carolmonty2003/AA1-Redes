@@ -53,21 +53,37 @@ void GameManager::Update(float dt)
 
     if (isGameOver || players.empty()) return;
 
-    // Simple turn timer logic.
-    // Solo el jugador ACTIVO decide su propio timeout y avisa al resto con NEXT_TURN.
-    // Los demas clientes solo muestran la cuenta atras; no avanzan por su cuenta
-    // (si lo hicieran, el turno se desincronizaria al cerrar el ciclo de jugadores).
+    // Turn timer logic.
+    // El jugador ACTIVO controla su propio timeout: al agotarse, pasa turno y avisa
+    // al resto con NEXT_TURN. Los demas solo muestran la cuenta atras.
+    // Si el jugador activo NO avisa tras un margen extra (TURN_DISCONNECT_GRACE),
+    // asumimos que se ha desconectado o esta AFK y lo saltamos, para que la partida
+    // no se quede atascada en su turno.
     turnTimer -= dt;
-    if (turnTimer <= 0.0f)
+
+    const bool isMyTurn = (players[currentTurnIndex].id == localPlayerID);
+
+    if (isMyTurn)
     {
-        if (players[currentTurnIndex].id == localPlayerID)
+        if (turnTimer <= 0.0f)
         {
             std::cout << "Time out: paso mi turno automaticamente." << std::endl;
             AdvanceTurn();
         }
+    }
+    else if (turnTimer <= -Config::Game::TURN_DISCONNECT_GRACE)
+    {
+        int goneIndex = currentTurnIndex;
+        if (!players[goneIndex].isSpectator)
+        {
+            std::cout << players[goneIndex].nickName
+                << " no responde en su turno: se le da por desconectado." << std::endl;
+            MarkPlayerDisconnected(goneIndex);
+        }
         else
         {
-            turnTimer = 0.0f; // Espera el NEXT_TURN del jugador activo
+            // El turno estaba sobre un espectador: forzamos el avance.
+            AdvanceTurn();
         }
     }
 }
@@ -113,18 +129,19 @@ void GameManager::ReceiveNetworkMoves()
             {
                 int disconnectedID = 0;
                 packet >> disconnectedID;
-                
+
                 for (int i = 0; i < (int)players.size(); i++)
                 {
                     if (players[i].id == disconnectedID && !players[i].isSpectator)
                     {
                         players[i].isSpectator = true;
-                        std::cout << players[i].nickName << " disconnected (notified by peer)" << std::endl;
-                        if (i == currentTurnIndex) AdvanceTurn();
+                        std::cout << players[i].nickName << " desconectado (avisado por un peer)." << std::endl;
                         break;
                     }
                 }
                 CheckGameOver();
+                // El turno lo mueve quien detecto la desconexion (envia NEXT_TURN);
+                // aqui solo marcamos al jugador como espectador.
             }
             else if (packetType == PacketType::NEXT_TURN)
             {
@@ -135,41 +152,35 @@ void GameManager::ReceiveNetworkMoves()
         }
         else if (status == sf::Socket::Status::Disconnected || status == sf::Socket::Status::Error)
         {
-            HandlePeerDisconnection(sock.get());
+            // No es fiable identificar al jugador por su socket (hay varias conexiones
+            // por peer y en orden no garantizado). La desconexion real se gestiona por
+            // timeout en Update (TURN_DISCONNECT_GRACE), evitando expulsar al jugador
+            // equivocado.
         }
     }
 }
 
-void GameManager::HandlePeerDisconnection(sf::TcpSocket* socket)
+void GameManager::MarkPlayerDisconnected(int playerIndex)
 {
-    int playerIdx = GetPlayerIndexBySocket(socket);
-    if (playerIdx == -1) return;
+    if (playerIndex < 0 || playerIndex >= (int)players.size()) return;
+    if (players[playerIndex].isSpectator) return;
 
-    Player& p = players[playerIdx];
-    if (p.isSpectator) return;
+    players[playerIndex].isSpectator = true;
+    std::cout << players[playerIndex].nickName << " marcado como desconectado." << std::endl;
 
-    std::cout << p.nickName << " disconnected. Kicking them out." << std::endl;
-    p.isSpectator = true;
-
+    // Avisar al resto de peers para que tambien lo marquen como espectador.
     sf::Packet notify;
-    notify << (int)PacketType::PLAYER_DISCONNECTED << p.id;
+    notify << (int)PacketType::PLAYER_DISCONNECTED << players[playerIndex].id;
     NM.SendToAllConnections(notify);
 
-    if (playerIdx == currentTurnIndex) AdvanceTurn();
+    // La partida puede terminar si solo queda un jugador activo.
     CheckGameOver();
-}
 
-int GameManager::GetPlayerIndexBySocket(sf::TcpSocket* socket) const
-{
-    auto& connections = NM.GetConnections();
-    int connIdx = 0;
-    for (int i = 0; i < (int)players.size(); i++)
+    // Si era su turno, avanzamos al siguiente (AdvanceTurn difunde NEXT_TURN).
+    if (!isGameOver && playerIndex == currentTurnIndex)
     {
-        if (players[i].id == localPlayerID) continue;
-        if (connIdx < (int)connections.size() && connections[connIdx].get() == socket) return i;
-        connIdx++;
+        AdvanceTurn();
     }
-    return -1;
 }
 
 void GameManager::BroadcastMove(int gx, int gy, int playerID)
