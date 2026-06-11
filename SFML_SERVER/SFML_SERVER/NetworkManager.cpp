@@ -141,6 +141,24 @@ void NetworkManager::HandleLoginRequest(ConnectedClient& client, sf::Packet& pac
     LoginRequestData loginRequestData;
     packet >> loginRequestData;
     bool success = DC.LoginPlayer(loginRequestData);
+
+    // Evitar que el mismo usuario tenga la sesion abierta en dos clientes a la vez:
+    // si las credenciales son validas pero ya hay otro cliente conectado con ese
+    // username, rechazamos este login.
+    if (success)
+    {
+        for (const ConnectedClient& other : m_clients)
+        {
+            if (other.playerId != client.playerId && other.username == loginRequestData.username)
+            {
+                success = false;
+                std::cout << "[SERVER] Login rechazado: '" << loginRequestData.username
+                    << "' ya tiene una sesion activa." << std::endl;
+                break;
+            }
+        }
+    }
+
     LoginResponseData response;
     response.success = success;
     if (success) {
