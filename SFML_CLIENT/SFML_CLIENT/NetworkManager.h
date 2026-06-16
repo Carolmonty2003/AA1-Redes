@@ -77,5 +77,5 @@ private:
     std::vector<std::unique_ptr<sf::TcpSocket>> m_gameConnections;
 
     static constexpr unsigned short SERVER_PORT = 55000;
-    const sf::IpAddress SERVER_IP = sf::IpAddress(10, 40, 1, 242);
+    const sf::IpAddress SERVER_IP = sf::IpAddress(10,40,2,189);
 };
