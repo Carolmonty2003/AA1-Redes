@@ -155,6 +155,11 @@ void GameManager::ReceiveNetworkMoves()
             // timeout en Update (TURN_DISCONNECT_GRACE), evitando expulsar al jugador
             // equivocado.
         }
+
+        // Si al procesar el paquete la partida ha terminado, CheckGameOver() ya habra
+        // llamado a ClearConnections() y vaciado 'connections'. Hay que salir AQUI: seguir
+        // iterando el vector ya vaciado es comportamiento indefinido (cerraba el cliente).
+        if (isGameOver) return;
     }
 }
 
