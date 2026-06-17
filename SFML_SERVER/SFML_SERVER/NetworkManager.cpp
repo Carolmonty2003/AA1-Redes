@@ -11,6 +11,7 @@ NetworkManager::NetworkManager()
 
 bool NetworkManager::Start(unsigned short listenPort)
 {
+    //configura el puerto
     if (m_listener.listen(listenPort) != sf::Socket::Status::Done)
     {
         std::cerr << "[SERVER] Error al escuchar en puerto " << listenPort << std::endl;
@@ -37,6 +38,7 @@ void NetworkManager::Update()
 
 void NetworkManager::AcceptNewClients()
 {
+    //Detecta si hay una nueva conexión/Cliente
     std::unique_ptr<sf::TcpSocket> newSocket = std::make_unique<sf::TcpSocket>();
     newSocket->setBlocking(false);
 
@@ -60,6 +62,7 @@ void NetworkManager::AcceptNewClients()
 
 void NetworkManager::ReceiveClientData()
 {
+    //Obtiene datos de clientes
     for (int i = 0; i < static_cast<int>(m_clients.size()); ++i)
     {
         ConnectedClient& client = m_clients[i];
@@ -78,7 +81,7 @@ void NetworkManager::ReceiveClientData()
             packet.clear();
             status = client.socket->receive(packet);
         }
-
+        //Detecta si un jugador se ha desconectado
         if (status == sf::Socket::Status::Disconnected)
         {
             std::cout << "[SERVER] Cliente desconectado. playerId: "
@@ -93,6 +96,7 @@ void NetworkManager::ReceiveClientData()
 
 void NetworkManager::ProcessPacket(ConnectedClient& client, sf::Packet& packet)
 {
+    //Detecta el tipo de paquete y se llama a la función que lo gestiona
     PacketType packetType = PacketType::NONE;
     packet >> packetType;
     std::cout << "[SERVER] Processing package: " << packetType << std::endl << " from: " << client.username << std::endl;
@@ -126,6 +130,7 @@ void NetworkManager::ProcessPacket(ConnectedClient& client, sf::Packet& packet)
 
 void NetworkManager::HandleRegisterRequest(ConnectedClient& client, sf::Packet& packet)
 {
+    //Gestiona paquete recibido  de registro
     RegisterRequestData registerRequestData;
     packet >> registerRequestData;
     DC.AddPlayer(registerRequestData);
@@ -138,11 +143,30 @@ void NetworkManager::HandleRegisterRequest(ConnectedClient& client, sf::Packet& 
 
 void NetworkManager::HandleLoginRequest(ConnectedClient& client, sf::Packet& packet)
 {
+
+    //Gestiona paquete recibido  de inicio de sesión
     LoginRequestData loginRequestData;
     packet >> loginRequestData;
     bool success = DC.LoginPlayer(loginRequestData);
+
+    //Revisa si ya ha iniciado sesión
+    if (success)
+    {
+        for (const ConnectedClient& other : m_clients)
+        {
+            if (other.playerId != client.playerId && other.username == loginRequestData.username)
+            {
+                success = false;
+                std::cout << "[SERVER] Login rechazado: '" << loginRequestData.username
+                    << "' ya tiene una sesion activa." << std::endl;
+                break;
+            }
+        }
+    }
+
     LoginResponseData response;
     response.success = success;
+    //Si todo bien prepara los datos para mandar al cliente
     if (success) {
         client.username = loginRequestData.username;
         response.username = loginRequestData.username;
@@ -156,6 +180,7 @@ void NetworkManager::HandleLoginRequest(ConnectedClient& client, sf::Packet& pac
 
 void NetworkManager::HandleCreateRoomRequest(ConnectedClient& client, sf::Packet& packet)
 {
+    //Gestiona paquete recibido  de creacion de salas
     CreateRoomRequestData requestData;
     packet >> requestData;
 
@@ -182,6 +207,8 @@ void NetworkManager::HandleCreateRoomRequest(ConnectedClient& client, sf::Packet
 
 void NetworkManager::HandleJoinRoomRequest(ConnectedClient& client, sf::Packet& packet)
 {
+
+    //Gestiona paquete unirse a sala
     JoinRoomRequestData requestData;
     packet >> requestData;
 
@@ -227,6 +254,7 @@ void NetworkManager::HandleJoinRoomRequest(ConnectedClient& client, sf::Packet& 
 
 void NetworkManager::HandleEndGame(ConnectedClient& client, sf::Packet& packet)
 {
+    //Gestiona paquete de fin de partida
     GameResultData resultData;
     packet >> resultData;
     for (const Result& r : resultData.results)
@@ -244,6 +272,7 @@ void NetworkManager::HandleEndGame(ConnectedClient& client, sf::Packet& packet)
 
 void NetworkManager::HandleRankingRequest(ConnectedClient& client, sf::Packet& packet)
 {
+    //Gestiona paquete conulta ranking
     RankingRequestData rankingRequestData;
     packet >> rankingRequestData;
 
@@ -263,6 +292,8 @@ void NetworkManager::HandleRankingRequest(ConnectedClient& client, sf::Packet& p
 
 void NetworkManager::SendCreateRoomResponse(ConnectedClient& client, bool success, const std::string& roomId, const std::string& message)
 {
+
+    //Gestiona mandar paquete al jugador de creación de sala
     if (client.socket == nullptr)
     {
         return;
@@ -282,6 +313,8 @@ void NetworkManager::SendCreateRoomResponse(ConnectedClient& client, bool succes
 
 void NetworkManager::SendJoinRoomResponse(ConnectedClient& client, bool success, const std::string& roomId, const std::string& message)
 {
+
+    //Gestiona mandar paquete al jugador de unirse a sala
     if (client.socket == nullptr)
     {
         return;
@@ -301,6 +334,8 @@ void NetworkManager::SendJoinRoomResponse(ConnectedClient& client, bool success,
 
 void NetworkManager::SendLoginResponse(ConnectedClient& client, const LoginResponseData& data)
 {
+
+    //Gestiona mandar paquete al jugador sobre el inicio de sesión
     sf::Packet packet;
     packet << static_cast<short>(PacketType::LOGIN_RESPONSE);
     packet << data;
@@ -309,6 +344,8 @@ void NetworkManager::SendLoginResponse(ConnectedClient& client, const LoginRespo
 
 void NetworkManager::SendRegisterResponse(ConnectedClient& client, const RegisterResponseData& data)
 {
+
+    //Gestiona mandar paquete al jugador de creación de usuario
     sf::Packet packet;
     packet << static_cast<short>(PacketType::REGISTER_RESPONSE);
     packet << data;
@@ -319,6 +356,7 @@ void NetworkManager::SendRegisterResponse(ConnectedClient& client, const Registe
 
 void NetworkManager::SendErrorMessage(ConnectedClient& client, const std::string& message)
 {
+    //Gestiona mandar paquete al jugador conforme ha habido un error
     if (client.socket == nullptr)
     {
         return;
@@ -336,6 +374,7 @@ void NetworkManager::SendErrorMessage(ConnectedClient& client, const std::string
 
 void NetworkManager::BroadcastRoomStatus(const std::string& roomId)
 {
+    //Gestiona mandar paquete al jugador del estado de la sala a los jugadores
     Room* room = m_roomManager.GetRoom(roomId);
 
     if (room == nullptr)
@@ -385,6 +424,7 @@ void NetworkManager::BroadcastRoomStatus(const std::string& roomId)
 
 void NetworkManager::TryStartGame(const std::string& roomId)
 {
+    //Revisa si se puede iniciar partida o no
     Room* room = m_roomManager.GetRoom(roomId);
 
     if (room == nullptr)
@@ -451,6 +491,7 @@ void NetworkManager::TryStartGame(const std::string& roomId)
 
 ConnectedClient* NetworkManager::GetClientById(int playerId)
 {
+    //Revisa los clientes y manda el que coincida con el id
     for (ConnectedClient& client : m_clients)
     {
         if (client.playerId == playerId)
@@ -464,6 +505,7 @@ ConnectedClient* NetworkManager::GetClientById(int playerId)
 
 ConnectedClient* NetworkManager::GetClientBySocket(sf::TcpSocket* socket)
 {
+    //Revisa los clientes y manda el que coincida con el socket
     for (ConnectedClient& client : m_clients)
     {
         if (client.socket == socket)
@@ -477,12 +519,15 @@ ConnectedClient* NetworkManager::GetClientBySocket(sf::TcpSocket* socket)
 
 void NetworkManager::RemoveDisconnectedClient(int index)
 {
+
     if (index < 0 || index >= static_cast<int>(m_clients.size()))
     {
         return;
     }
 
     int playerId = m_clients[index].playerId;
+    // Guardamos la sala para avisar a los que quedan.
+    std::string roomId = m_clients[index].currentRoomId;
 
     m_roomManager.RemovePlayerFromRoom(playerId);
 
@@ -497,12 +542,20 @@ void NetworkManager::RemoveDisconnectedClient(int index)
     }
 
     m_clients.erase(m_clients.begin() + index);
+
+    // Actualiza el estado de la sala y lo notifica a los jugadores
+    if (!roomId.empty() && m_roomManager.GetRoom(roomId) != nullptr)
+    {
+        BroadcastRoomStatus(roomId);
+    }
+
     PrintConnectedClients();
     m_roomManager.PrintRooms();
 }
 
 void NetworkManager::PrintConnectedClients() const
 {
+    //Imprime clientes conectados
     std::cout << "\n[SERVER] Clientes conectados:\n";
 
     if (m_clients.empty())
@@ -524,6 +577,7 @@ void NetworkManager::PrintConnectedClients() const
 
 void NetworkManager::HandleRankingUpdate(ConnectedClient& client, sf::Packet& packet)
 {
+    //Gestiona paquete de actualización de ranking
     RankingUpdateData updateData;
     packet >> updateData;
 
@@ -536,8 +590,10 @@ void NetworkManager::HandleRankingUpdate(ConnectedClient& client, sf::Packet& pa
 
 void NetworkManager::ProcessRankingValidation(const std::string& roomId)
 {
+    // Realiza 2 Updates iguales para validar
     auto& updates = pendingRankingUpdates[roomId];
-    if (updates.size() < 2) return; // 2 Updates iguales para validar
+    if (updates.size() < 2) 
+        return; 
 
     // Verificación por pares
     bool same = true;
@@ -554,14 +610,17 @@ void NetworkManager::ProcessRankingValidation(const std::string& roomId)
     if (same)
     {
         std::cout << "[SERVER] Ranking validado para sala " << roomId << ". Actualizando BD..." << std::endl;
-        
+        //Actualiza la puntuación
         for (size_t i = 0; i < first.size(); ++i)
         {
             int playerId = first[i];
             int pointsDiff = 0;
-            if (i == 0) pointsDiff = 20;       // Ganador
-            else if (i == 1) pointsDiff = -5;  // 2do lugar
-            else pointsDiff = -10;             // 3er y 4to lugar
+            if (i == 0) 
+                pointsDiff = 20;       // Ganador
+            else if (i == 1) 
+                pointsDiff = -5;  // 2do lugar
+            else 
+                pointsDiff = -10;             // 3er y 4to lugar
 
             if (pointsDiff != 0) {
                 DC.UpdatePlayerScore(playerId, pointsDiff);

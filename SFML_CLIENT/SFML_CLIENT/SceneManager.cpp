@@ -1,7 +1,7 @@
 #include "SceneManager.h"
 
 bool SceneManager::AddScene(std::string name, Scene* scene) {
-	
+	//Añade escena a la lista de escenas
 	if (scenes.find(name) == scenes.end()) {
 		scenes.emplace(name, scene);
 		return true;
@@ -10,7 +10,7 @@ bool SceneManager::AddScene(std::string name, Scene* scene) {
 }
 
 Scene* SceneManager::GetScene(std::string name) {
-
+	//Obtiene una escena por su nombre si existe
 	if (scenes.find(name) != scenes.end()) {
 		return scenes[name];
 	}
@@ -18,7 +18,7 @@ Scene* SceneManager::GetScene(std::string name) {
 }
 
 bool SceneManager::InitFirstScene(std::string name) {
-
+	//Inicia la primera escena
 	if (scenes.find(name) != scenes.end()) {
 		currentScene = scenes[name];
 		currentScene->OnEnter();
@@ -28,6 +28,7 @@ bool SceneManager::InitFirstScene(std::string name) {
 }
 
 bool SceneManager::SetNextScene(std::string name) {
+	//Si existe, prepara cambio de escena
 	if (scenes.find(name) == scenes.end()) {
 		return false;
 	}
@@ -36,6 +37,7 @@ bool SceneManager::SetNextScene(std::string name) {
 }
 
 void SceneManager::UpdateCurrentScene(float dt) {
+	//Actualiza/cambia de escena
 	if (nextScene != "") {
 		if (currentScene)
 			currentScene->OnExit();
