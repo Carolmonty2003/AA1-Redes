@@ -13,6 +13,7 @@ void GameScene::SyncNextTurn(int playerID)
 
 void GameScene::OnEnter()
 {
+    //prepara la escena
     std::cout << "Entrando a GameScene..." << std::endl;
     auto& state = NM.GetClientState();
     std::vector<Player> gamePlayers;
@@ -60,8 +61,7 @@ void GameScene::OnEnter()
 void GameScene::HandleEvent(const sf::Event& event) {
     if (event.is<sf::Event::Closed>())
     {
-        // Cerramos en plena partida: avisamos a los peers de que nos vamos, sea el
-        // turno de quien sea, para que la partida continue sin nosotros.
+        // Avisa a los demás de que nos continue sin nosotros.
         NM.NotifyP2PDisconnect();
         return;
     }
@@ -80,6 +80,7 @@ void GameScene::HandleEvent(const sf::Event& event) {
 
 void GameScene::Update(float dt)
 {
+    //Actualiza la escena
     NM.NetworkFetch();
     gameManager.ReceiveNetworkMoves();
     gameManager.Update(dt);
@@ -87,12 +88,14 @@ void GameScene::Update(float dt)
 
 void GameScene::Render(sf::RenderWindow& window)
 {
+    //pinta la escena
     gameManager.DrawGrid(window);
     gameManager.DrawHUD(window);
 }
 
 void GameScene::OnExit()
 {
+    //gestiona la salida de la escena
     std::cout << "Saliendo de GameScene..." << std::endl;
     NM.ClearConnections();
     gameManager.Reset();

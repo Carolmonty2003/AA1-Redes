@@ -80,6 +80,8 @@ void LobbyScene::OnEnter()
 
 void LobbyScene::HandleEvent(const sf::Event& event)
 {
+
+    
     if (roomIdInput) roomIdInput->handleEvent(event);
     if (createButton) createButton->handleEvent(event);
     if (joinButton) joinButton->handleEvent(event);
@@ -112,7 +114,7 @@ void LobbyScene::AskCreateRoom()
         std::cout << "[CLIENT] roomId vacio al crear sala" << std::endl;
         return;
     }
-
+    //Manda petición para crear una sala
     auto& state = NM.GetClientState();
     NM.SendCreateRoomRequest(roomId, state.nickname, state.myGamePort);
 
@@ -122,6 +124,7 @@ void LobbyScene::AskCreateRoom()
 
 void LobbyScene::AskJoinRoom()
 {
+    
     if (!roomIdInput) return;
 
     std::string roomId = roomIdInput->getText();
@@ -131,7 +134,7 @@ void LobbyScene::AskJoinRoom()
         std::cout << "[CLIENT] roomId vacio al unirse." << std::endl;
         return;
     }
-
+//Manda petición para unirse a sala
     auto& state = NM.GetClientState();
     NM.SendJoinRoomRequest(roomId, state.nickname, state.myGamePort);
 
@@ -141,10 +144,11 @@ void LobbyScene::AskJoinRoom()
 
 void LobbyScene::Update(float dt)
 {
+    //Actualiza la escena
     NM.NetworkFetch();
 
     const auto& state = NM.GetClientState();
-
+     //Revisa si puede empezar la partida o está en la sala de espera
     if (state.hasGameStarted)
     {
         statusText = "Partida iniciada...";
@@ -160,6 +164,7 @@ void LobbyScene::Update(float dt)
 
 void LobbyScene::Render(sf::RenderWindow& window)
 {
+    //Pinta la escena
     sf::Text titleText(font);
     titleText.setCharacterSize(Config::UI::FONT_SIZE_TITLE);
     titleText.setPosition({ Config::Lobby::TITLE_X, Config::Lobby::TITLE_Y });

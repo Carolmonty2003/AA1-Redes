@@ -7,7 +7,7 @@ NetworkManager::NetworkManager()
 }
 
 bool NetworkManager::ConnectToServer()
-{
+{ //Establece conexión
     if (m_isConnected)
     {
         std::cout << "Ya conectado al servidor" << std::endl;
@@ -18,11 +18,13 @@ bool NetworkManager::ConnectToServer()
 
 void NetworkManager::DisconnectFromServer()
 {
+    //Cierra conexión
     CloseConnection();
 }
 
 void NetworkManager::NetworkFetch()
 {
+    //Obtiene datos
     ReceiveData();
 }
 
@@ -30,6 +32,7 @@ void NetworkManager::ReceiveData()
 {
     if (m_isConnected)
     {
+        //Revisa si hay paquete o se ha desconectado
         sf::Packet packet;
         sf::Socket::Status status = m_socket.receive(packet);
         while (status == sf::Socket::Status::Done)
@@ -50,6 +53,7 @@ void NetworkManager::ReceiveData()
 
 bool NetworkManager::StartP2PListener(unsigned short port)
 {
+    //Cambia a P2P
     if (listener == nullptr) {
         listener = new sf::TcpListener();
     }
@@ -66,6 +70,7 @@ bool NetworkManager::StartP2PListener(unsigned short port)
 
 void NetworkManager::AcceptPeerConnections()
 {
+    //Revisa para aceptar P2P
     if (listener == nullptr) return;
 
     auto newSocket = std::make_unique<sf::TcpSocket>();
@@ -80,6 +85,7 @@ void NetworkManager::AcceptPeerConnections()
 
 bool NetworkManager::AddConnection(const std::string& ip, unsigned short port)
 {
+    //Añade una conexión
     auto newSocket = std::make_unique<sf::TcpSocket>();
     auto address = sf::IpAddress::resolve(ip);
     if (!address)
@@ -104,6 +110,7 @@ bool NetworkManager::AddConnection(const std::string& ip, unsigned short port)
 
 void NetworkManager::SendToAllConnections(sf::Packet& packet)
 {
+    //Manda a todas las conexiones
     for (auto& sock : m_gameConnections)
     {
         if (sock->send(packet) != sf::Socket::Status::Done)
@@ -125,7 +132,7 @@ std::vector<std::unique_ptr<sf::TcpSocket>>& NetworkManager::GetConnections()
 
 void NetworkManager::NotifyP2PDisconnect()
 {
-   
+   //Notifica a los demás "Peers" de su desconexión
     if (m_gameConnections.empty()) 
         return;
 
@@ -158,6 +165,7 @@ void NetworkManager::ClearConnections()
 
 bool NetworkManager::Connect(const sf::IpAddress& serverIp, unsigned short serverPort)
 {
+    //establece conexión con el servidor
     m_socket.setBlocking(true); 
     if (m_socket.connect(serverIp, serverPort) != sf::Socket::Status::Done)
     {
@@ -180,6 +188,7 @@ bool NetworkManager::Connect(const sf::IpAddress& serverIp, unsigned short serve
 
 void NetworkManager::CloseConnection()
 {
+    //Cierra la conexión
     if (!m_isConnected)
     {
         return;
@@ -206,6 +215,7 @@ void NetworkManager::SendCreateRoomRequest(const std::string& roomId, const std:
     requestData.username = nickname;
     requestData.gamePort = gamePort;
 
+    //Prepara y manda paquete de solicitud de creación de sala
     packet << static_cast<short>(PacketType::CREATE_ROOM_REQUEST);
     packet << requestData;
 
@@ -229,6 +239,7 @@ void NetworkManager::SendJoinRoomRequest(const std::string& roomId, const std::s
 
     sf::Packet packet;
 
+    //Prepara y manda paquete de solicitud de unirse sala
     JoinRoomRequestData requestData;
     requestData.roomId = roomId;
     requestData.username = nickname;
@@ -268,7 +279,7 @@ void NetworkManager::ProcessPacket(sf::Packet& packet)
 {
     PacketType packetType = PacketType::NONE;
     packet >> packetType;
-
+    //Revisa el tipo de paquete para procesarlo
     switch (packetType)
     {
     case PacketType::LOGIN_RESPONSE:
@@ -316,6 +327,8 @@ void NetworkManager::SendToServer(sf::Packet& packet)
 
 void NetworkManager::SendLoginRequest(const std::string& username, const std::string& password)
 {
+
+    //Prepara y manda paquete de solicitud de inicio de sesión
     LoginRequestData loginRequestData;
     loginRequestData.username = username;
     loginRequestData.password = password;
@@ -328,6 +341,8 @@ void NetworkManager::SendLoginRequest(const std::string& username, const std::st
 
 void NetworkManager::SendRegisterRequest(const std::string& username, const std::string& password)
 {
+
+    //Prepara y manda paquete de solicitud de registro
     RegisterRequestData registerRequestData;
     registerRequestData.username = username;
     registerRequestData.password = password;
@@ -340,6 +355,8 @@ void NetworkManager::SendRegisterRequest(const std::string& username, const std:
 
 void NetworkManager::SendRankingRequest(const std::string& username)
 {
+
+    //Prepara y manda paquete de solicitud de consulta de ranking
     RankingRequestData requestData;
     requestData.username = username;
 
@@ -351,6 +368,8 @@ void NetworkManager::SendRankingRequest(const std::string& username)
 
 void NetworkManager::NotifyPlayerWin(const std::string& username)
 {
+
+    //Prepara y manda paquete de victoria de partida
     sf::Packet packet;
     packet << static_cast<short>(PacketType::ENDGAME);
     m_socket.send(packet);
@@ -358,6 +377,8 @@ void NetworkManager::NotifyPlayerWin(const std::string& username)
 
 void NetworkManager::HandleCreateRoomResponse(sf::Packet& packet)
 {
+
+    //Gestiona paquete recibido de solicitud de creación de sala
     CreateRoomResponseData responseData;
     packet >> responseData;
 
@@ -376,6 +397,8 @@ void NetworkManager::HandleCreateRoomResponse(sf::Packet& packet)
 
 void NetworkManager::HandleJoinRoomResponse(sf::Packet& packet)
 {
+
+    //Gestiona paquete recibido de solicitud de unirse a sala
     JoinRoomResponseData responseData;
     packet >> responseData;
 
@@ -394,6 +417,8 @@ void NetworkManager::HandleJoinRoomResponse(sf::Packet& packet)
 
 void NetworkManager::HandleRoomStatusUpdate(sf::Packet& packet)
 {
+
+    //Gestiona paquete recibido de estado de la sala
     RoomStatusUpdateData roomData;
     packet >> roomData;
 
@@ -421,6 +446,8 @@ void NetworkManager::HandleRoomStatusUpdate(sf::Packet& packet)
 
 void NetworkManager::HandleStartGame(sf::Packet& packet)
 {
+
+    //Gestiona paquete recibido de inicio de juego
     StartGameData startData;
     packet >> startData;
 
@@ -448,6 +475,8 @@ void NetworkManager::HandleStartGame(sf::Packet& packet)
 
 void NetworkManager::HandleErrorMessage(sf::Packet& packet)
 {
+
+    //Gestiona paquete recibido de error
     ErrorMessageData errorData;
     packet >> errorData;
 
@@ -458,6 +487,8 @@ void NetworkManager::HandleErrorMessage(sf::Packet& packet)
 
 void NetworkManager::HandleLoginResponse(sf::Packet& packet)
 {
+
+    //Gestiona paquete recibido de inicio de sesión
     LoginResponseData loginResponseData;
     packet >> loginResponseData;
     if (loginResponseData.success)

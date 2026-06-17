@@ -146,12 +146,13 @@ void GameManager::ReceiveNetworkMoves()
 
 void GameManager::OnPlayerDisconnected(int playerIndex, bool announce)
 {
+
     if (playerIndex < 0 || playerIndex >= (int)players.size()) return;
     if (players[playerIndex].isSpectator) return; // ya gestionado
 
     players[playerIndex].isSpectator = true;
     std::cout << players[playerIndex].nickName << " desconectado." << std::endl;
-
+     //Notifica a los demas la desconexión
     if (announce)
     {
         sf::Packet notify;
@@ -167,6 +168,7 @@ void GameManager::OnPlayerDisconnected(int playerIndex, bool announce)
 
 void GameManager::BroadcastMove(int gx, int gy, int playerID)
 {
+    //Notifica movimiento
     sf::Packet packet;
     packet << (int)PacketType::PIECEADDED << playerID << gx << gy;
     NM.SendToAllConnections(packet);
@@ -174,6 +176,7 @@ void GameManager::BroadcastMove(int gx, int gy, int playerID)
 
 void GameManager::BroadcastNextTurn(int nextPlayerID)
 {
+    //Notifica cambio de turno
     sf::Packet packet;
     packet << (int)PacketType::NEXT_TURN << nextPlayerID;
     NM.SendToAllConnections(packet);
@@ -204,6 +207,7 @@ void GameManager::SyncNextTurn(int nextPlayerID)
 
 void GameManager::TryPlacePieceScreen(float mouseX, float mouseY)
 {
+    //Gestiona intento de colocar pieza
     if (isGameOver || players.empty()) return;
     if (players[currentTurnIndex].id != localPlayerID) return;
     if (players[currentTurnIndex].isSpectator) return;
@@ -223,6 +227,7 @@ void GameManager::TryPlacePieceScreen(float mouseX, float mouseY)
 
 bool GameManager::TryPlacePieceGrid(int gx, int gy, int playerIndex)
 {
+    //posuiciona la pieza en la tabla
     if (gx < 0 || gx >= Config::Game::GRID_COLUMNS || gy < 0 || gy >= Config::Game::GRID_ROWS) return false;
     if (grid[gx][gy] != 0) return false;
 
@@ -242,7 +247,7 @@ bool GameManager::TryPlacePieceGrid(int gx, int gy, int playerIndex)
         victoryOrder.push_back(playerID);
         std::cout << "!!! " << players[playerIndex].nickName << " WON!" << std::endl;
     }
-
+    //rvisa si se ha acabado la partida
     CheckGameOver();
 
     if (!isGameOver && playerID == localPlayerID) 
@@ -280,6 +285,7 @@ bool GameManager::CheckWin(int gx, int gy, int playerID)
 
 bool GameManager::IsBoardFull() const
 {
+    //revisa si se ha llenado el tablero recorriendo las celdas
     for (int x = 0; x < Config::Game::GRID_COLUMNS; x++)
         for (int y = 0; y < Config::Game::GRID_ROWS; y++)
             if (grid[x][y] == 0) return false;
