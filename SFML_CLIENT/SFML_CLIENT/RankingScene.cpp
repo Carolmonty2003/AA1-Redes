@@ -10,6 +10,7 @@ RankingScene::RankingScene()
 
 void RankingScene::BuildUI()
 {
+    //Añade boton
     backButton = std::make_unique<Button>(
         200.f, 500.f, 400.f, 50.f, font
     );
@@ -21,18 +22,22 @@ void RankingScene::BuildUI()
 
 void RankingScene::OnEnter()
 {
+    //Acciones al entrar
     BuildUI();
     rankingData.clear();
+    //Llama al NM que hace la peticion a la base de datos
     NM.SendRankingRequest(NM.GetClientState().nickname);
 }
 
 void RankingScene::HandleEvent(const sf::Event& event)
 {
+    //Añade acción al botón
     if (backButton) backButton->handleEvent(event);
 }
 
 void RankingScene::Update(float dt)
 {
+    //Actualiza la escena
     NM.NetworkFetch();
     auto& ranking = NM.GetClientState().ranking;
     if (!ranking.empty() && rankingData.empty())
@@ -44,6 +49,7 @@ void RankingScene::Update(float dt)
 
 void RankingScene::Render(sf::RenderWindow& window)
 {
+    //Monta la escena(visual)
     sf::Text title(font);
     title.setCharacterSize(Config::UI::FONT_SIZE_TITLE);
     title.setPosition({Config::Ranking::TITLE_X, Config::Ranking::TITLE_Y});

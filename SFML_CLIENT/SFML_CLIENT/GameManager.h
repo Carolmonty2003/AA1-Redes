@@ -18,13 +18,11 @@ private:
     sf::Font font;
     int localPlayerID = 1;
 
-    /// gx Columna 
-    /// gy Fila 
     void BroadcastMove(int gx, int gy, int playerID);
 
-    void HandlePeerDisconnection(sf::TcpSocket* socket);
+    void OnPlayerDisconnected(int playerIndex, bool announce);
 
-    int GetPlayerIndexBySocket(sf::TcpSocket* socket) const;
+    bool IsBoardFull() const;
 
 public:
     
@@ -55,6 +53,5 @@ public:
    
     void DrawHUD(sf::RenderWindow& window);
 
-    // Limpia todo el estado de partida
     void Reset();
 };

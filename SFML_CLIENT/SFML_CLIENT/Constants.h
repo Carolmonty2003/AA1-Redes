@@ -31,6 +31,9 @@ namespace Config
         const short   GRID_ROWS = 6;
         const short   CELL_SIZE = 90;
         const float MAX_TURN_TIME = 20.0f;
+        // Margen extra (segundos) que esperan los demas jugadores tras agotarse el
+        // turno del jugador activo antes de darlo por desconectado y saltarlo.
+        const float TURN_DISCONNECT_GRACE = 3.0f;
         const int   DEFAULT_SCORE = 1000;
         inline const char* DEFAULT_ROOM = "test_room";
         const int   WIN_COUNT = 3;

@@ -53,12 +53,30 @@ void GameManager::Update(float dt)
 
     if (isGameOver || players.empty()) return;
 
-    // Simple turn timer logic
     turnTimer -= dt;
-    if (turnTimer <= 0.0f)
+
+    const bool isMyTurn = (players[currentTurnIndex].id == localPlayerID);
+
+    if (isMyTurn)
     {
-        std::cout << "Time out for " << players[currentTurnIndex].nickName << std::endl;
-        AdvanceTurn();
+        if (turnTimer <= 0.0f)
+        {
+            std::cout << "Time out: paso mi turno automaticamente." << std::endl;
+            AdvanceTurn();
+        }
+    }
+    else if (turnTimer <= -Config::Game::TURN_DISCONNECT_GRACE)
+    {
+        int goneIndex = currentTurnIndex;
+        if (!players[goneIndex].isSpectator)
+        {
+            std::cout << players[goneIndex].nickName
+                << " no responde en su turno: se le da por desconectado." << std::endl;
+            OnPlayerDisconnected(goneIndex, true);
+        }
+        else
+            AdvanceTurn();
+        
     }
 }
 
@@ -103,18 +121,15 @@ void GameManager::ReceiveNetworkMoves()
             {
                 int disconnectedID = 0;
                 packet >> disconnectedID;
-                
+
                 for (int i = 0; i < (int)players.size(); i++)
                 {
-                    if (players[i].id == disconnectedID && !players[i].isSpectator)
+                    if (players[i].id == disconnectedID)
                     {
-                        players[i].isSpectator = true;
-                        std::cout << players[i].nickName << " disconnected (notified by peer)" << std::endl;
-                        if (i == currentTurnIndex) AdvanceTurn();
+                        OnPlayerDisconnected(i, false);
                         break;
                     }
                 }
-                CheckGameOver();
             }
             else if (packetType == PacketType::NEXT_TURN)
             {
@@ -123,47 +138,37 @@ void GameManager::ReceiveNetworkMoves()
                 SyncNextTurn(nextID);
             }
         }
-        else if (status == sf::Socket::Status::Disconnected || status == sf::Socket::Status::Error)
-        {
-            HandlePeerDisconnection(sock.get());
-        }
+        
+        if (isGameOver) 
+            return;
     }
 }
 
-void GameManager::HandlePeerDisconnection(sf::TcpSocket* socket)
+void GameManager::OnPlayerDisconnected(int playerIndex, bool announce)
 {
-    int playerIdx = GetPlayerIndexBySocket(socket);
-    if (playerIdx == -1) return;
 
-    Player& p = players[playerIdx];
-    if (p.isSpectator) return;
+    if (playerIndex < 0 || playerIndex >= (int)players.size()) return;
+    if (players[playerIndex].isSpectator) return; // ya gestionado
 
-    std::cout << p.nickName << " disconnected. Kicking them out." << std::endl;
-    p.isSpectator = true;
-
-    sf::Packet notify;
-    notify << (int)PacketType::PLAYER_DISCONNECTED << p.id;
-    NM.SendToAllConnections(notify);
-
-    if (playerIdx == currentTurnIndex) AdvanceTurn();
-    CheckGameOver();
-}
-
-int GameManager::GetPlayerIndexBySocket(sf::TcpSocket* socket) const
-{
-    auto& connections = NM.GetConnections();
-    int connIdx = 0;
-    for (int i = 0; i < (int)players.size(); i++)
+    players[playerIndex].isSpectator = true;
+    std::cout << players[playerIndex].nickName << " desconectado." << std::endl;
+     //Notifica a los demas la desconexión
+    if (announce)
     {
-        if (players[i].id == localPlayerID) continue;
-        if (connIdx < (int)connections.size() && connections[connIdx].get() == socket) return i;
-        connIdx++;
+        sf::Packet notify;
+        notify << (int)PacketType::PLAYER_DISCONNECTED << players[playerIndex].id;
+        NM.SendToAllConnections(notify);
     }
-    return -1;
+
+    CheckGameOver();
+
+    if (!isGameOver && playerIndex == currentTurnIndex)
+        AdvanceTurn();
 }
 
 void GameManager::BroadcastMove(int gx, int gy, int playerID)
 {
+    //Notifica movimiento
     sf::Packet packet;
     packet << (int)PacketType::PIECEADDED << playerID << gx << gy;
     NM.SendToAllConnections(packet);
@@ -171,6 +176,7 @@ void GameManager::BroadcastMove(int gx, int gy, int playerID)
 
 void GameManager::BroadcastNextTurn(int nextPlayerID)
 {
+    //Notifica cambio de turno
     sf::Packet packet;
     packet << (int)PacketType::NEXT_TURN << nextPlayerID;
     NM.SendToAllConnections(packet);
@@ -182,6 +188,12 @@ void GameManager::SyncNextTurn(int nextPlayerID)
     {
         if (players[i].id == nextPlayerID)
         {
+            if (players[i].isSpectator)
+            {
+                std::cout << "Ignorado NEXT_TURN hacia espectador: " << players[i].nickName << std::endl;
+                return;
+            }
+
             if (currentTurnIndex != i)
             {
                 currentTurnIndex = i;
@@ -195,8 +207,10 @@ void GameManager::SyncNextTurn(int nextPlayerID)
 
 void GameManager::TryPlacePieceScreen(float mouseX, float mouseY)
 {
+    //Gestiona intento de colocar pieza
     if (isGameOver || players.empty()) return;
     if (players[currentTurnIndex].id != localPlayerID) return;
+    if (players[currentTurnIndex].isSpectator) return;
 
     float offsetX = (Config::Window::WIDTH - (Config::Game::GRID_COLUMNS * Config::Game::CELL_SIZE)) / 2.f;
     float offsetY = (Config::Window::HEIGHT - (Config::Game::GRID_ROWS * Config::Game::CELL_SIZE)) / 2.f;
@@ -213,6 +227,7 @@ void GameManager::TryPlacePieceScreen(float mouseX, float mouseY)
 
 bool GameManager::TryPlacePieceGrid(int gx, int gy, int playerIndex)
 {
+    //posuiciona la pieza en la tabla
     if (gx < 0 || gx >= Config::Game::GRID_COLUMNS || gy < 0 || gy >= Config::Game::GRID_ROWS) return false;
     if (grid[gx][gy] != 0) return false;
 
@@ -224,15 +239,20 @@ bool GameManager::TryPlacePieceGrid(int gx, int gy, int playerIndex)
     // Send to plaayers if it's my turn
     if (playerID == localPlayerID) BroadcastMove(gx, gy, playerID);
 
-    if (CheckWin(gx, gy, playerID))
+    const bool boardFull = IsBoardFull();
+
+    if (!boardFull && CheckWin(gx, gy, playerID))
     {
         players[playerIndex].isSpectator = true;
         victoryOrder.push_back(playerID);
         std::cout << "!!! " << players[playerIndex].nickName << " WON!" << std::endl;
-        CheckGameOver();
     }
+    //rvisa si se ha acabado la partida
+    CheckGameOver();
 
-    if (!isGameOver) AdvanceTurn();
+    if (!isGameOver && playerID == localPlayerID) 
+        AdvanceTurn();
+    
     return true;
 }
 
@@ -263,31 +283,30 @@ bool GameManager::CheckWin(int gx, int gy, int playerID)
     return false;
 }
 
+bool GameManager::IsBoardFull() const
+{
+    //revisa si se ha llenado el tablero recorriendo las celdas
+    for (int x = 0; x < Config::Game::GRID_COLUMNS; x++)
+        for (int y = 0; y < Config::Game::GRID_ROWS; y++)
+            if (grid[x][y] == 0) return false;
+    return true;
+}
+
 void GameManager::AdvanceTurn()
 {
-    // Check if board is full
-    bool boardFull = true;
-    for (int x = 0; x < Config::Game::GRID_COLUMNS; x++) {
-        for (int y = 0; y < Config::Game::GRID_ROWS; y++) {
-            if (grid[x][y] == 0) boardFull = false;
-        }
-    }
-
-    if (boardFull) {
+    if (IsBoardFull()) {
         std::cout << "Draw! Board is full." << std::endl;
         CheckGameOver();
         return;
     }
 
-    // Move to next player that is not a spectator
+    // REvisa el siguiente jugador qye no sea espectador
     int total = (int)players.size();
     for (int i = 0; i < total; i++) {
         currentTurnIndex = (currentTurnIndex + 1) % total;
         if (!players[currentTurnIndex].isSpectator) {
             turnTimer = Config::Game::MAX_TURN_TIME;
             std::cout << "--- Turn: " << players[currentTurnIndex].nickName << " ---" << std::endl;
-
-           
             BroadcastNextTurn(players[currentTurnIndex].id);
             return;
         }
@@ -297,15 +316,14 @@ void GameManager::AdvanceTurn()
 
 void GameManager::CheckGameOver()
 {
+    if (isGameOver) 
+        return;
+
     int spectators = 0;
     for (const auto& p : players) if (p.isSpectator) spectators++;
 
-    bool boardFull = true;
-    for (int x = 0; x < Config::Game::GRID_COLUMNS; x++)
-        for (int y = 0; y < Config::Game::GRID_ROWS; y++)
-            if (grid[x][y] == 0) boardFull = false;
+    const bool boardFull = IsBoardFull();
 
-    
     if (spectators >= (int)players.size() - 1 || boardFull)
     {
         std::cout << "=== GAME OVER ===" << std::endl;

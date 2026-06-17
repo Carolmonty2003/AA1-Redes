@@ -30,7 +30,7 @@ public:
     void SendJoinRoomRequest(const std::string& roomId, const std::string& nickname, unsigned short gamePort);
 
     void ReceiveData();
-    void NetworkFetch();          // Alias de ReceiveData
+    void NetworkFetch();  
 
     bool IsConnected() const;
     const ClientState& GetClientState() const;
@@ -39,11 +39,12 @@ public:
     // --- Conexiones P2P (juego) ---
     bool StartP2PListener(unsigned short port);
     void AcceptPeerConnections();
-    void AddConnection(const std::string& ip, unsigned short port);
+    bool AddConnection(const std::string& ip, unsigned short port);
     void SendToAllConnections(sf::Packet& packet);
     const std::vector<std::unique_ptr<sf::TcpSocket>>& GetConnections() const;
     std::vector<std::unique_ptr<sf::TcpSocket>>& GetConnections();
     void ClearConnections();
+    void NotifyP2PDisconnect();
     void SendToServer(sf::Packet& packet);
     void SendLoginRequest(const std::string& username, const std::string& password);
     void SendRegisterRequest(const std::string& username, const std::string& password);
@@ -70,10 +71,10 @@ private:
     sf::TcpSocket m_socket;
     bool m_isConnected;
     ClientState m_clientState;
-    sf::TcpListener* listener;
+    sf::TcpListener* listener = nullptr;
 
     std::vector<std::unique_ptr<sf::TcpSocket>> m_gameConnections;
 
     static constexpr unsigned short SERVER_PORT = 55000;
-    const sf::IpAddress SERVER_IP = sf::IpAddress(127, 0, 0, 1);
+    const sf::IpAddress SERVER_IP = sf::IpAddress(10,40,2,189);
 };

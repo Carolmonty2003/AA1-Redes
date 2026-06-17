@@ -72,6 +72,7 @@ void LoginScene::HandleEvent(const sf::Event& event)
 
 void LoginScene::Update(float dt)
 {
+    //Revisa si ha iniciado sesión para saltar al lobby
     NM.NetworkFetch();
     if (NM.GetClientState().IsLoggedIn())
         SM.SetNextScene("LobbyScene");

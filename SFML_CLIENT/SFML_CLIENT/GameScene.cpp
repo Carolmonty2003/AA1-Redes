@@ -13,6 +13,7 @@ void GameScene::SyncNextTurn(int playerID)
 
 void GameScene::OnEnter()
 {
+    //prepara la escena
     std::cout << "Entrando a GameScene..." << std::endl;
     auto& state = NM.GetClientState();
     std::vector<Player> gamePlayers;
@@ -33,12 +34,16 @@ void GameScene::OnEnter()
 
     SetupGame(gamePlayers, state.playerId);
 
+    if (myIndex == -1)
+        return;
+
     // Iniciar listener P2P
     NM.StartP2PListener(state.roomPlayers[myIndex].gamePort);
 
     for (int i = 0; i < (int)state.roomPlayers.size(); ++i)
     {
-        if (i == myIndex) continue; // No conectar a ti mismo
+        if (i == myIndex) 
+            continue; 
 
         const auto& lp = state.roomPlayers[i];
         std::cout << "[CLIENT] Intentando conectar a " << lp.username
@@ -54,6 +59,13 @@ void GameScene::OnEnter()
 }
 
 void GameScene::HandleEvent(const sf::Event& event) {
+    if (event.is<sf::Event::Closed>())
+    {
+        // Avisa a los demás de que nos continue sin nosotros.
+        NM.NotifyP2PDisconnect();
+        return;
+    }
+
     if (event.is<sf::Event::MouseButtonPressed>())
     {
         const sf::Event::MouseButtonPressed* mbInfo =
@@ -68,6 +80,7 @@ void GameScene::HandleEvent(const sf::Event& event) {
 
 void GameScene::Update(float dt)
 {
+    //Actualiza la escena
     NM.NetworkFetch();
     gameManager.ReceiveNetworkMoves();
     gameManager.Update(dt);
@@ -75,12 +88,14 @@ void GameScene::Update(float dt)
 
 void GameScene::Render(sf::RenderWindow& window)
 {
+    //pinta la escena
     gameManager.DrawGrid(window);
     gameManager.DrawHUD(window);
 }
 
 void GameScene::OnExit()
 {
+    //gestiona la salida de la escena
     std::cout << "Saliendo de GameScene..." << std::endl;
     NM.ClearConnections();
     gameManager.Reset();
