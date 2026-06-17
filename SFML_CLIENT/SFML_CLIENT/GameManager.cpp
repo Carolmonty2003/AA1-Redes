@@ -53,12 +53,6 @@ void GameManager::Update(float dt)
 
     if (isGameOver || players.empty()) return;
 
-    // Turn timer logic.
-    // El jugador ACTIVO controla su propio timeout: al agotarse, pasa turno y avisa
-    // al resto con NEXT_TURN. Los demas solo muestran la cuenta atras.
-    // Si el jugador activo NO avisa tras un margen extra (TURN_DISCONNECT_GRACE),
-    // asumimos que se ha desconectado o esta AFK y lo saltamos, para que la partida
-    // no se quede atascada en su turno.
     turnTimer -= dt;
 
     const bool isMyTurn = (players[currentTurnIndex].id == localPlayerID);
@@ -81,10 +75,8 @@ void GameManager::Update(float dt)
             OnPlayerDisconnected(goneIndex, true);
         }
         else
-        {
-            // El turno estaba sobre un espectador: forzamos el avance.
             AdvanceTurn();
-        }
+        
     }
 }
 
@@ -134,8 +126,6 @@ void GameManager::ReceiveNetworkMoves()
                 {
                     if (players[i].id == disconnectedID)
                     {
-                        // Ya nos lo han avisado: no re-anunciar. Si era su turno,
-                        // OnPlayerDisconnected avanza al siguiente jugador activo.
                         OnPlayerDisconnected(i, false);
                         break;
                     }
@@ -148,18 +138,9 @@ void GameManager::ReceiveNetworkMoves()
                 SyncNextTurn(nextID);
             }
         }
-        else if (status == sf::Socket::Status::Disconnected || status == sf::Socket::Status::Error)
-        {
-            // No es fiable identificar al jugador por su socket (hay varias conexiones
-            // por peer y en orden no garantizado). La desconexion real se gestiona por
-            // timeout en Update (TURN_DISCONNECT_GRACE), evitando expulsar al jugador
-            // equivocado.
-        }
-
-        // Si al procesar el paquete la partida ha terminado, CheckGameOver() ya habra
-        // llamado a ClearConnections() y vaciado 'connections'. Hay que salir AQUI: seguir
-        // iterando el vector ya vaciado es comportamiento indefinido (cerraba el cliente).
-        if (isGameOver) return;
+        
+        if (isGameOver) 
+            return;
     }
 }
 
@@ -171,7 +152,6 @@ void GameManager::OnPlayerDisconnected(int playerIndex, bool announce)
     players[playerIndex].isSpectator = true;
     std::cout << players[playerIndex].nickName << " desconectado." << std::endl;
 
-    // Si lo hemos detectado nosotros, avisamos al resto de peers.
     if (announce)
     {
         sf::Packet notify;
@@ -179,16 +159,10 @@ void GameManager::OnPlayerDisconnected(int playerIndex, bool announce)
         NM.SendToAllConnections(notify);
     }
 
-    // La partida puede terminar si solo queda un jugador activo.
     CheckGameOver();
 
-    // Si era su turno, avanzamos al siguiente jugador activo (AdvanceTurn difunde NEXT_TURN).
-    // Todos los clientes parten del mismo currentTurnIndex y calculan el mismo siguiente,
-    // por lo que el avance es consistente (los NEXT_TURN redundantes son idempotentes).
     if (!isGameOver && playerIndex == currentTurnIndex)
-    {
         AdvanceTurn();
-    }
 }
 
 void GameManager::BroadcastMove(int gx, int gy, int playerID)
@@ -211,9 +185,6 @@ void GameManager::SyncNextTurn(int nextPlayerID)
     {
         if (players[i].id == nextPlayerID)
         {
-            // No habilitar el turno de un jugador desconectado/espectador. La autoridad
-            // solo difunde NEXT_TURN de jugadores activos, asi que un NEXT_TURN hacia un
-            // espectador es obsoleto: lo ignoramos para no "resucitar" su turno.
             if (players[i].isSpectator)
             {
                 std::cout << "Ignorado NEXT_TURN hacia espectador: " << players[i].nickName << std::endl;
@@ -235,7 +206,7 @@ void GameManager::TryPlacePieceScreen(float mouseX, float mouseY)
 {
     if (isGameOver || players.empty()) return;
     if (players[currentTurnIndex].id != localPlayerID) return;
-    if (players[currentTurnIndex].isSpectator) return; // un espectador/desconectado no coloca
+    if (players[currentTurnIndex].isSpectator) return;
 
     float offsetX = (Config::Window::WIDTH - (Config::Game::GRID_COLUMNS * Config::Game::CELL_SIZE)) / 2.f;
     float offsetY = (Config::Window::HEIGHT - (Config::Game::GRID_ROWS * Config::Game::CELL_SIZE)) / 2.f;
@@ -263,8 +234,6 @@ bool GameManager::TryPlacePieceGrid(int gx, int gy, int playerIndex)
     // Send to plaayers if it's my turn
     if (playerID == localPlayerID) BroadcastMove(gx, gy, playerID);
 
-    // Si esta ficha llena el tablero, la partida acaba en EMPATE: no se corona a
-    // quien coloca la ultima ficha aunque forme linea.
     const bool boardFull = IsBoardFull();
 
     if (!boardFull && CheckWin(gx, gy, playerID))
@@ -274,13 +243,11 @@ bool GameManager::TryPlacePieceGrid(int gx, int gy, int playerIndex)
         std::cout << "!!! " << players[playerIndex].nickName << " WON!" << std::endl;
     }
 
-    // Comprobar fin de partida (victoria final o tablero lleno) en TODOS los clientes,
-    // no solo en el que avanza el turno.
     CheckGameOver();
 
-    // Solo el jugador que ha movido avanza el turno y difunde NEXT_TURN (es la autoridad).
-    // El resto aplican la jugada y esperan ese paquete para sincronizarse via SyncNextTurn.
-    if (!isGameOver && playerID == localPlayerID) AdvanceTurn();
+    if (!isGameOver && playerID == localPlayerID) 
+        AdvanceTurn();
+    
     return true;
 }
 
@@ -321,22 +288,19 @@ bool GameManager::IsBoardFull() const
 
 void GameManager::AdvanceTurn()
 {
-    // Si el tablero esta lleno, no hay turno que dar: la partida termina.
     if (IsBoardFull()) {
         std::cout << "Draw! Board is full." << std::endl;
         CheckGameOver();
         return;
     }
 
-    // Move to next player that is not a spectator
+    // REvisa el siguiente jugador qye no sea espectador
     int total = (int)players.size();
     for (int i = 0; i < total; i++) {
         currentTurnIndex = (currentTurnIndex + 1) % total;
         if (!players[currentTurnIndex].isSpectator) {
             turnTimer = Config::Game::MAX_TURN_TIME;
             std::cout << "--- Turn: " << players[currentTurnIndex].nickName << " ---" << std::endl;
-
-           
             BroadcastNextTurn(players[currentTurnIndex].id);
             return;
         }
@@ -346,7 +310,8 @@ void GameManager::AdvanceTurn()
 
 void GameManager::CheckGameOver()
 {
-    if (isGameOver) return; // Evita re-ejecutar el fin de partida (ENDGAME / cambio de escena)
+    if (isGameOver) 
+        return;
 
     int spectators = 0;
     for (const auto& p : players) if (p.isSpectator) spectators++;

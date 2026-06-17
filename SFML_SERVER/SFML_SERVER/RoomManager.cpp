@@ -3,10 +3,9 @@
 
 bool RoomManager::CreateRoom(const std::string& roomId, int creatorPlayerId)
 {
+    //Si existe, no hace nada y retorna false
     if (RoomExists(roomId))
-    {
         return false;
-    }
 
     Room newRoom;
     newRoom.roomId = roomId;
@@ -14,6 +13,7 @@ bool RoomManager::CreateRoom(const std::string& roomId, int creatorPlayerId)
     newRoom.inGame = false;
     newRoom.maxPlayers = MAX_PLAYERS;
 
+    //Si no existe la cra
     m_rooms.push_back(newRoom);
 
     std::cout << "[SERVER][RoomManager] Sala creada: " << roomId
@@ -21,10 +21,12 @@ bool RoomManager::CreateRoom(const std::string& roomId, int creatorPlayerId)
         << std::endl;
 
     return true;
+
 }
 
 bool RoomManager::JoinRoom(const std::string& roomId, int playerId)
 {
+    //Revisa si la sala existe 
     Room* room = GetRoom(roomId);
 
     if (room == nullptr)
@@ -32,10 +34,14 @@ bool RoomManager::JoinRoom(const std::string& roomId, int playerId)
         return false;
     }
 
+    //Si ya se está jugando pues retorna false como si no existe
     if (room->inGame)
     {
         return false;
     }
+
+
+    //En caso de que no se esté o ha superado el num de jugadores pues retorna tambien false para no unirse 
 
     if (static_cast<int>(room->playerIds.size()) >= room->maxPlayers)
     {
@@ -49,7 +55,9 @@ bool RoomManager::JoinRoom(const std::string& roomId, int playerId)
             return false;
         }
     }
+    
 
+    //Si puede, une al jugador y devuelve true
     room->playerIds.push_back(playerId);
 
     std::cout << "[SERVER][RoomManager] Player " << playerId
@@ -63,6 +71,7 @@ bool RoomManager::JoinRoom(const std::string& roomId, int playerId)
 
 void RoomManager::RemovePlayerFromRoom(int playerId)
 {
+    //revisa los jugadores y salas para birrarlo
     for (int roomIndex = 0; roomIndex < static_cast<int>(m_rooms.size()); ++roomIndex)
     {
         Room& room = m_rooms[roomIndex];
@@ -94,6 +103,7 @@ void RoomManager::RemovePlayerFromRoom(int playerId)
 
 void RoomManager::DeleteRoom(const std::string& roomId)
 {
+    //Revisa las salas y borra la que toque 
     for (int i = 0; i < static_cast<int>(m_rooms.size()); ++i)
     {
         if (m_rooms[i].roomId == roomId)
@@ -107,6 +117,7 @@ void RoomManager::DeleteRoom(const std::string& roomId)
 
 Room* RoomManager::GetRoom(const std::string& roomId)
 {
+    //Busca y devuelve la sala en base al nombre
     for (Room& room : m_rooms)
     {
         if (room.roomId == roomId)
@@ -120,6 +131,7 @@ Room* RoomManager::GetRoom(const std::string& roomId)
 
 Room* RoomManager::GetRoomByPlayerId(int playerId)
 {
+    //Busca y devuelve la sala en base al id del jugador
     for (Room& room : m_rooms)
     {
         for (int existingPlayerId : room.playerIds)
@@ -135,7 +147,7 @@ Room* RoomManager::GetRoomByPlayerId(int playerId)
 }
 
 bool RoomManager::RoomExists(const std::string& roomId) const
-{
+{ //Revisa si la sala existe con el nombre
     for (const Room& room : m_rooms)
     {
         if (room.roomId == roomId)
@@ -148,7 +160,7 @@ bool RoomManager::RoomExists(const std::string& roomId) const
 }
 
 bool RoomManager::IsRoomFull(const std::string& roomId) const
-{
+{//{ //Revisa si la sala está llena con el nombre
     for (const Room& room : m_rooms)
     {
         if (room.roomId == roomId)
@@ -162,6 +174,7 @@ bool RoomManager::IsRoomFull(const std::string& roomId) const
 
 void RoomManager::PrintRooms() const
 {
+    //Imprime las salas
     std::cout << "\n[SERVER][RoomManager] Estado actual de salas:\n";
 
     if (m_rooms.empty())

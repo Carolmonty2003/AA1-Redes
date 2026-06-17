@@ -41,7 +41,8 @@ void GameScene::OnEnter()
 
     for (int i = 0; i < (int)state.roomPlayers.size(); ++i)
     {
-        if (i == myIndex) continue; // No conectar a ti mismo
+        if (i == myIndex) 
+            continue; 
 
         const auto& lp = state.roomPlayers[i];
         std::cout << "[CLIENT] Intentando conectar a " << lp.username

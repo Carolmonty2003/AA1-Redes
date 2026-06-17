@@ -30,7 +30,7 @@ public:
     void SendJoinRoomRequest(const std::string& roomId, const std::string& nickname, unsigned short gamePort);
 
     void ReceiveData();
-    void NetworkFetch();          // Alias de ReceiveData
+    void NetworkFetch();  
 
     bool IsConnected() const;
     const ClientState& GetClientState() const;
@@ -44,7 +44,6 @@ public:
     const std::vector<std::unique_ptr<sf::TcpSocket>>& GetConnections() const;
     std::vector<std::unique_ptr<sf::TcpSocket>>& GetConnections();
     void ClearConnections();
-    // Avisa a los peers (PLAYER_DISCONNECTED propio) de que nos vamos. No-op si no hay P2P.
     void NotifyP2PDisconnect();
     void SendToServer(sf::Packet& packet);
     void SendLoginRequest(const std::string& username, const std::string& password);

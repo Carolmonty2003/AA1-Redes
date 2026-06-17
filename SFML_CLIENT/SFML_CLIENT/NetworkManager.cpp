@@ -125,9 +125,9 @@ std::vector<std::unique_ptr<sf::TcpSocket>>& NetworkManager::GetConnections()
 
 void NetworkManager::NotifyP2PDisconnect()
 {
-    // Solo tiene sentido en partida (hay conexiones P2P). En el lobby es no-op:
-    // alli la baja la detecta el servidor al cerrarse el socket.
-    if (m_gameConnections.empty()) return;
+   
+    if (m_gameConnections.empty()) 
+        return;
 
     sf::Packet packet;
     packet << static_cast<int>(PacketType::PLAYER_DISCONNECTED) << m_clientState.playerId;

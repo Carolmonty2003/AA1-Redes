@@ -4,7 +4,7 @@
 DatabaseConnector::DatabaseConnector(){}
 
 void DatabaseConnector::ConnectDatabase()
-{
+{//Conecta a la base de datos con los datos
 	try {
 		driver = get_driver_instance();
 		con = driver->connect(SERVER, USERNAME, PASSWORD);
@@ -18,6 +18,7 @@ void DatabaseConnector::ConnectDatabase()
 
 void DatabaseConnector::DisconnectDatabase()
 {
+	//Cierra la conexion con la base de datos
 	con->close();
 	if (con->isClosed()) {
 		std::cout << "Connection closed" << std::endl;
@@ -27,6 +28,7 @@ void DatabaseConnector::DisconnectDatabase()
 
 std::string DatabaseConnector::HashPassword(const std::string& password)
 {
+	//Le mete hash a la contraseña antes de mandarla a la base de datos (Revisar PDF y repo de git)
 	SHA256 sha;
 	sha.update(password);
 	return sha.toString(sha.digest());
@@ -34,6 +36,7 @@ std::string DatabaseConnector::HashPassword(const std::string& password)
 
 void DatabaseConnector::GetAllPlayers()
 {
+	//Manda una query para obtener a todos los jugadores(Deug)
 	sql::PreparedStatement* pstmt = con->prepareStatement("SELECT * FROM players");
 	sql::ResultSet* res = pstmt->executeQuery();
 	while (res->next())
@@ -45,6 +48,7 @@ void DatabaseConnector::GetAllPlayers()
 bool DatabaseConnector::LoginPlayer(LoginRequestData lrd)
 {
 	try{
+		//Manda una query con los datos, los procedimientos en la base de datos se encarga de revisar si el nombte o usuario está bien
 		sql::PreparedStatement* pstmt = con->prepareStatement("CALL LoginPlayer( ?, ? )");
 		pstmt->setString(1, lrd.username);
 		pstmt->setString(2, HashPassword(lrd.password));
@@ -56,7 +60,7 @@ bool DatabaseConnector::LoginPlayer(LoginRequestData lrd)
 			std::cout << "[SERVER] " << lrd.username << " login failed" << std::endl;
 		delete res;
 		
-		// Consumir resultados las stored procedure
+		// Borra los stored procedure
 		while(pstmt->getMoreResults()) {
 			sql::ResultSet* extraRes = pstmt->getResultSet();
 			if(extraRes) delete extraRes;
@@ -74,6 +78,7 @@ bool DatabaseConnector::LoginPlayer(LoginRequestData lrd)
 void  DatabaseConnector::AddPlayer(RegisterRequestData rrd)
 {
 	try {
+		//Manda una query con los datos, los procedimientos en la base de datos se encarga de revisar si el nombte o usuario está bien o existe
 		sql::PreparedStatement* pstmt = con->prepareStatement("CALL AddPlayer( ?, ? )");
 		pstmt->setString(1, rrd.username);
 		pstmt->setString(2, HashPassword(rrd.password));
@@ -93,6 +98,7 @@ void  DatabaseConnector::AddPlayer(RegisterRequestData rrd)
 void DatabaseConnector::UpdateScore(Result r)
 {
 	try {
+		//Manda una query con los datos, los procedimientos en la base de datos se encarga de añadir/quitar puntuación
 		sql::PreparedStatement* pstmt = con->prepareStatement("CALL UpdateScore( ?, ? )");
 		pstmt->setString(1, r.username);
 		pstmt->setInt(2, r.scoredPoints);
@@ -111,6 +117,8 @@ void DatabaseConnector::UpdateScore(Result r)
 
 std::vector<RankingData> DatabaseConnector::GetRanking(std::string playerName)
 {
+
+	//Ejecuta query para obtener el ranking, el procedimiento en la base de datos se encara de obtener los resultados
 	std::vector<RankingData> rankingDataEntries;
 
 	sql::PreparedStatement* pstmt = con->prepareStatement("CALL GetRanking(?)");
@@ -135,8 +143,7 @@ std::vector<RankingData> DatabaseConnector::GetRanking(std::string playerName)
 void DatabaseConnector::UpdatePlayerScore(int playerId, int scoreDiff)
 {
 	try {
-        // En lugar de usar la stored procedure UpdateScore (que tiene el bug de Id = Id), 
-        // hacemos la query pura para asegurarnos del correcto update en DB.
+		//Manda una query a la base de datos se encarga de añadir/quitar puntuación de forma manual
 		sql::PreparedStatement* pstmt = con->prepareStatement(
 			"UPDATE players SET Score = GREATEST(0, CAST(Score AS SIGNED) + ?) WHERE Id = ?"
 		);

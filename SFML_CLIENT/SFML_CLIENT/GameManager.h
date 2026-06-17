@@ -18,16 +18,10 @@ private:
     sf::Font font;
     int localPlayerID = 1;
 
-    /// gx Columna
-    /// gy Fila
     void BroadcastMove(int gx, int gy, int playerID);
 
-    // Marca a un jugador como desconectado/espectador y avanza el turno si era el suyo.
-    // announce=true cuando lo hemos detectado nosotros (difunde PLAYER_DISCONNECTED);
-    // announce=false cuando ya nos lo han avisado por red.
     void OnPlayerDisconnected(int playerIndex, bool announce);
 
-    // True si no queda ninguna casilla vacia en el tablero.
     bool IsBoardFull() const;
 
 public:
@@ -59,6 +53,5 @@ public:
    
     void DrawHUD(sf::RenderWindow& window);
 
-    // Limpia todo el estado de partida
     void Reset();
 };
